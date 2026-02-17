@@ -1,36 +1,107 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ChartMe by imi - Plateforme de Tests de Positionnement
 
-## Getting Started
+Plateforme permettant aux administrateurs de créer des tests de positionnement QCM générés par IA et de suivre les résultats des candidats.
 
-First, run the development server:
+## Fonctionnalités
 
+- 🔐 **Authentification multi-admin** avec Firebase Auth
+- 🤖 **Génération de questions QCM par IA** via OpenRouter (Claude 3.5 Sonnet)
+- 🔗 **Liens uniques** pour chaque test
+- 📊 **Suivi des résultats** en temps réel
+- 📧 **Notifications email** (admin + candidat)
+
+## Stack technique
+
+- **Next.js 14** (App Router)
+- **Firebase** (Auth + Firestore)
+- **OpenRouter API** (IA)
+- **TailwindCSS + shadcn/ui**
+- **Resend** (emails)
+
+## Installation
+
+1. Cloner le repo et installer les dépendances :
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Configurer les variables d'environnement dans `.env.local` :
+```env
+OPENROUTER_API_KEY=votre_cle_openrouter
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+NEXT_PUBLIC_FIREBASE_API_KEY=votre_api_key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=votre_projet.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=votre_projet
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=votre_projet.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123456789
+NEXT_PUBLIC_FIREBASE_APP_ID=1:123456789:web:abc123
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+RESEND_API_KEY=re_xxxxx (optionnel)
 
-## Learn More
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
 
-To learn more about Next.js, take a look at the following resources:
+3. Configurer les règles Firestore (voir section ci-dessous)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+4. Lancer le serveur de développement :
+```bash
+npm run dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Règles Firestore
 
-## Deploy on Vercel
+Remplacer les règles Firestore dans la console Firebase par :
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```javascript
+rules_version = '2';
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Admins - lecture/écriture pour l'utilisateur connecté
+    match /admins/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Tests - création par admin, lecture publique pour les tests actifs
+    match /tests/{testId} {
+      allow read: if resource.data.isActive == true || 
+                    (request.auth != null && resource.data.createdBy == request.auth.uid);
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && resource.data.createdBy == request.auth.uid;
+    }
+    
+    // Submissions - création publique, lecture par admin du test
+    match /submissions/{submissionId} {
+      allow create: if true;
+      allow read: if request.auth != null;
+    }
+  }
+}
+```
+
+## Déploiement sur Vercel
+
+1. Créer un repo GitHub et pousser le code
+2. Connecter Vercel à votre repo GitHub
+3. Ajouter les variables d'environnement dans Vercel (Settings > Environment Variables)
+4. Mettre à jour `NEXT_PUBLIC_APP_URL` avec votre URL Vercel
+
+## Structure du projet
+
+```
+src/
+├── app/
+│   ├── admin/           # Pages admin (protégées)
+│   │   ├── dashboard/
+│   │   └── tests/
+│   ├── auth/            # Authentification
+│   │   ├── login/
+│   │   └── register/
+│   ├── test/[uniqueId]/ # Page publique pour candidats
+│   └── api/             # Routes API
+│       ├── generate/    # Génération IA
+│       └── email/       # Envoi d'emails
+├── components/ui/       # Composants shadcn/ui
+├── context/             # AuthContext
+└── lib/                 # Firebase, types, utils
+```
