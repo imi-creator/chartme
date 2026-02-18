@@ -22,8 +22,17 @@ export async function POST(request: NextRequest) {
         messages: [
           {
             role: 'system',
-            content: `Tu es un expert en création de QCM. Tu dois générer des questions de niveau ${difficulty || 'moyen'} sur le sujet demandé. 
-          
+            content: `Tu es un expert en évaluation de compétences professionnelles et création de QCM. Tu dois générer des questions de niveau ${difficulty || 'moyen'} sur le sujet demandé.
+
+OBJECTIF: Créer un test qui mesure précisément le niveau de compétence d'un professionnel sur le thème donné.
+
+RÈGLES DE CONCEPTION:
+- Les questions doivent évaluer des compétences concrètes et applicables en contexte professionnel
+- Inclure un mix de questions théoriques ET pratiques (cas concrets, mises en situation)
+- Les mauvaises réponses doivent être plausibles (erreurs courantes de professionnels moins expérimentés)
+- Varier les types de questions: définitions, application, analyse, résolution de problèmes
+- Adapter la complexité au niveau demandé (facile = bases, moyen = maîtrise, difficile = expertise)
+
 Réponds UNIQUEMENT avec un JSON valide, sans texte avant ou après. Le format doit être exactement:
 [
   {
@@ -36,7 +45,7 @@ Réponds UNIQUEMENT avec un JSON valide, sans texte avant ou après. Le format d
 
 - correctAnswer est l'index (0-3) de la bonne réponse dans le tableau options
 - Chaque question doit avoir exactement 4 options
-- Les questions doivent être pertinentes et bien formulées
+- IMPORTANT: Varie la position de la bonne réponse ! Répartis les bonnes réponses de manière équilibrée entre les positions 0, 1, 2 et 3.
 - Génère exactement ${numberOfQuestions || 10} questions`
           },
           {
@@ -66,7 +75,20 @@ Réponds UNIQUEMENT avec un JSON valide, sans texte avant ou après. Le format d
       if (!jsonMatch) {
         throw new Error('No JSON array found in response');
       }
-      const questions = JSON.parse(jsonMatch[0]);
+      const rawQuestions = JSON.parse(jsonMatch[0]);
+      
+      // Mélanger les options de chaque question pour éviter que la bonne réponse soit toujours à la même position
+      const questions = rawQuestions.map((q: { id: string; question: string; options: string[]; correctAnswer: number }) => {
+        const correctOption = q.options[q.correctAnswer];
+        const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
+        const newCorrectAnswer = shuffledOptions.indexOf(correctOption);
+        return {
+          ...q,
+          options: shuffledOptions,
+          correctAnswer: newCorrectAnswer,
+        };
+      });
+      
       return NextResponse.json({ questions });
     } catch (e) {
       console.error('Failed to parse questions:', content);

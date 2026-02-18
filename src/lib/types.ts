@@ -38,6 +38,7 @@ export interface Question {
 
 export interface Test {
   id: string;
+  testId?: string;
   organizationId: string;
   title: string;
   description: string;

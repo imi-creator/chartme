@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { ClipboardCheck, LayoutDashboard, Plus, LogOut, Loader2, Building2 } from 'lucide-react';
+import { ClipboardCheck, LayoutDashboard, LogOut, Loader2, Building2 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -51,13 +51,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 >
                   <LayoutDashboard className="h-4 w-4" />
                   Dashboard
-                </Link>
-                <Link
-                  href="/admin/tests/new"
-                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 transition-colors"
-                >
-                  <Plus className="h-4 w-4" />
-                  Nouveau test
                 </Link>
                 <Link
                   href="/admin/organization"

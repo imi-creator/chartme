@@ -8,10 +8,11 @@ import { useAuth } from '@/context/AuthContext';
 import { Test, Submission, TEST_CATEGORIES } from '@/lib/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Eye, Copy, Users, FileText, TrendingUp, ToggleLeft, ToggleRight, Copy as Duplicate, Award, Target, Calendar, Trash2 } from 'lucide-react';
+import { Plus, Eye, Link2, Users, FileText, TrendingUp, ToggleLeft, ToggleRight, Copy, Award, Target, Calendar, Trash2, Search } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { nanoid } from 'nanoid';
 import { toast } from 'sonner';
@@ -23,6 +24,7 @@ export default function DashboardPage() {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [testToDelete, setTestToDelete] = useState<Test | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -133,9 +135,13 @@ export default function DashboardPage() {
     }
   };
 
-  const filteredTests = categoryFilter === 'all' 
-    ? tests 
-    : tests.filter(t => t.category === categoryFilter);
+  const filteredTests = tests.filter(t => {
+    const matchesCategory = categoryFilter === 'all' || t.category === categoryFilter;
+    const matchesSearch = searchQuery === '' || 
+      t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (t.testId && t.testId.toLowerCase().includes(searchQuery.toLowerCase()));
+    return matchesCategory && matchesSearch;
+  });
 
   const totalSubmissions = submissions.length;
   const averageScore = submissions.length > 0
@@ -437,19 +443,30 @@ export default function DashboardPage() {
               <CardTitle>Mes tests</CardTitle>
               <CardDescription>Liste de tous vos tests de positionnement</CardDescription>
             </div>
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Filtrer par catégorie" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Toutes les catégories</SelectItem>
-                {TEST_CATEGORIES.map((cat) => (
-                  <SelectItem key={cat.value} value={cat.value}>
-                    {cat.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Rechercher par titre ou ID..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 w-64"
+                />
+              </div>
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Filtrer par catégorie" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Toutes les catégories</SelectItem>
+                  {TEST_CATEGORIES.map((cat) => (
+                    <SelectItem key={cat.value} value={cat.value}>
+                      {cat.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -470,6 +487,7 @@ export default function DashboardPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>ID</TableHead>
                   <TableHead>Titre</TableHead>
                   <TableHead>Questions</TableHead>
                   <TableHead>Difficulté</TableHead>
@@ -483,6 +501,9 @@ export default function DashboardPage() {
                   const testSubmissions = submissions.filter(s => s.testId === test.id);
                   return (
                     <TableRow key={test.id}>
+                      <TableCell className="font-mono text-xs text-gray-500">
+                        {test.testId || '-'}
+                      </TableCell>
                       <TableCell className="font-medium">
                         <div>
                           {test.title}
@@ -528,7 +549,7 @@ export default function DashboardPage() {
                             onClick={() => copyLink(test.uniqueLink)}
                             title="Copier le lien"
                           >
-                            <Copy className="h-4 w-4" />
+                            <Link2 className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -536,7 +557,7 @@ export default function DashboardPage() {
                             onClick={() => duplicateTest(test)}
                             title="Dupliquer le test"
                           >
-                            <Duplicate className="h-4 w-4" />
+                            <Copy className="h-4 w-4" />
                           </Button>
                           <Link href={`/admin/tests/${test.id}/results`}>
                             <Button variant="ghost" size="sm" title="Voir les résultats">

@@ -21,6 +21,7 @@ export default function NewTestPage() {
   const { user, organization } = useAuth();
   const router = useRouter();
   
+  const [testId, setTestId] = useState(nanoid(8));
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [topic, setTopic] = useState('');
@@ -159,6 +160,7 @@ export default function NewTestPage() {
       const uniqueLink = nanoid(10);
       
       await addDoc(collection(db, 'tests'), {
+        testId,
         title,
         description,
         topic,
@@ -209,6 +211,16 @@ export default function NewTestPage() {
                 placeholder="Ex: Test de JavaScript"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="testId">ID du test</Label>
+              <Input
+                id="testId"
+                placeholder="ID unique"
+                value={testId}
+                onChange={(e) => setTestId(e.target.value)}
+                className="font-mono"
               />
             </div>
             <div className="space-y-2">
