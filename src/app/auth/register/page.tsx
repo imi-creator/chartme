@@ -8,10 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { ClipboardCheck, Loader2 } from 'lucide-react';
+import { ClipboardCheck, Loader2, Building2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function RegisterPage() {
+  const [organizationName, setOrganizationName] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -33,11 +34,16 @@ export default function RegisterPage() {
       return;
     }
 
+    if (organizationName.trim().length < 2) {
+      toast.error('Le nom de l\'entreprise doit contenir au moins 2 caractères');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      await signUp(email, password, displayName);
-      toast.success('Compte créé avec succès');
+      await signUp(email, password, displayName, organizationName.trim());
+      toast.success('Compte et organisation créés avec succès');
       router.push('/admin/dashboard');
     } catch (error: any) {
       console.error(error);
@@ -55,12 +61,26 @@ export default function RegisterPage() {
             <ClipboardCheck className="h-8 w-8 text-indigo-600" />
             <CardTitle className="text-2xl">ChartMe <span className="text-sm font-normal text-gray-500">by imi</span></CardTitle>
           </div>
-          <CardDescription>Créez votre compte administrateur</CardDescription>
+          <CardDescription>Créez votre compte et votre organisation</CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="displayName">Nom complet</Label>
+              <Label htmlFor="organizationName" className="flex items-center gap-2">
+                <Building2 className="h-4 w-4" />
+                Nom de l'entreprise
+              </Label>
+              <Input
+                id="organizationName"
+                type="text"
+                placeholder="Mon Entreprise SAS"
+                value={organizationName}
+                onChange={(e) => setOrganizationName(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="displayName">Votre nom complet</Label>
               <Input
                 id="displayName"
                 type="text"
@@ -71,11 +91,11 @@ export default function RegisterPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Email professionnel</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="admin@exemple.com"
+                placeholder="vous@entreprise.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -112,7 +132,7 @@ export default function RegisterPage() {
                   Création...
                 </>
               ) : (
-                'Créer un compte'
+                'Créer mon organisation'
               )}
             </Button>
             <p className="text-sm text-gray-600">

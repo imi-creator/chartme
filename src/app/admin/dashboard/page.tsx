@@ -17,18 +17,19 @@ import { toast } from 'sonner';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 
 export default function DashboardPage() {
-  const { user } = useAuth();
+  const { user, organization } = useAuth();
   const [tests, setTests] = useState<Test[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !organization) return;
 
+    // Filtrer les tests par organisation
     const testsQuery = query(
       collection(db, 'tests'),
-      where('createdBy', '==', user.uid),
+      where('organizationId', '==', organization.id),
       orderBy('createdAt', 'desc')
     );
 
@@ -42,8 +43,10 @@ export default function DashboardPage() {
       setLoading(false);
     });
 
+    // Filtrer les soumissions par organisation
     const submissionsQuery = query(
       collection(db, 'submissions'),
+      where('organizationId', '==', organization.id),
       orderBy('completedAt', 'desc')
     );
 
@@ -53,17 +56,14 @@ export default function DashboardPage() {
         ...doc.data(),
         completedAt: doc.data().completedAt?.toDate(),
       })) as Submission[];
-      
-      const userTestIds = tests.map(t => t.id);
-      const filteredSubs = subsData.filter(s => userTestIds.includes(s.testId));
-      setSubmissions(filteredSubs);
+      setSubmissions(subsData);
     });
 
     return () => {
       unsubscribeTests();
       unsubscribeSubmissions();
     };
-  }, [user, tests.length]);
+  }, [user, organization]);
 
   const copyLink = (uniqueLink: string) => {
     const url = `${window.location.origin}/test/${uniqueLink}`;
@@ -84,6 +84,7 @@ export default function DashboardPage() {
   };
 
   const duplicateTest = async (test: Test) => {
+    if (!organization) return;
     try {
       const newUniqueLink = nanoid(10);
       await addDoc(collection(db, 'tests'), {
@@ -93,10 +94,12 @@ export default function DashboardPage() {
         difficulty: test.difficulty,
         questions: test.questions,
         uniqueLink: newUniqueLink,
+        organizationId: organization.id,
         createdBy: user?.uid,
         createdAt: Timestamp.now(),
         isActive: false,
         ...(test.timeLimit && { timeLimit: test.timeLimit }),
+        ...(test.category && { category: test.category }),
       });
       toast.success('Test dupliqué avec succès');
     } catch (error) {

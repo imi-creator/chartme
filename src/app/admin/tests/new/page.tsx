@@ -2,10 +2,10 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { collection, addDoc, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, Timestamp, doc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/context/AuthContext';
-import { Question, TEST_CATEGORIES } from '@/lib/types';
+import { Question, TEST_CATEGORIES, PLANS } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,7 +18,7 @@ import { toast } from 'sonner';
 import { nanoid } from 'nanoid';
 
 export default function NewTestPage() {
-  const { user } = useAuth();
+  const { user, organization } = useAuth();
   const router = useRouter();
   
   const [title, setTitle] = useState('');
@@ -136,12 +136,21 @@ export default function NewTestPage() {
   };
 
   const saveTest = async () => {
+    if (!organization) return;
+    
     if (!title) {
       toast.error('Veuillez entrer un titre');
       return;
     }
     if (questions.length === 0) {
       toast.error('Veuillez générer des questions');
+      return;
+    }
+
+    // Vérifier la limite du plan gratuit
+    const plan = PLANS[organization.plan];
+    if (organization.plan === 'free' && organization.testCount >= plan.maxTests) {
+      toast.error(`Limite atteinte ! Le plan gratuit est limité à ${plan.maxTests} tests. Passez au plan Pro pour créer plus de tests.`);
       return;
     }
 
@@ -156,11 +165,17 @@ export default function NewTestPage() {
         difficulty,
         questions,
         uniqueLink,
+        organizationId: organization.id,
         createdBy: user?.uid,
         createdAt: Timestamp.now(),
         isActive: true,
         ...(timeLimit && { timeLimit }),
         ...(category && { category }),
+      });
+
+      // Incrémenter le compteur de tests de l'organisation
+      await updateDoc(doc(db, 'organizations', organization.id), {
+        testCount: increment(1),
       });
 
       toast.success('Test créé avec succès');

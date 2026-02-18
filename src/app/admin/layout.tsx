@@ -4,11 +4,11 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { ClipboardCheck, LayoutDashboard, Plus, LogOut, Loader2 } from 'lucide-react';
+import { ClipboardCheck, LayoutDashboard, Plus, LogOut, Loader2, Building2 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading, logout } = useAuth();
+  const { user, organization, loading, logout } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -59,12 +59,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   <Plus className="h-4 w-4" />
                   Nouveau test
                 </Link>
+                <Link
+                  href="/admin/organization"
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 transition-colors"
+                >
+                  <Building2 className="h-4 w-4" />
+                  Organisation
+                </Link>
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600">
-                {user.displayName || user.email}
-              </span>
+              <div className="text-right">
+                <span className="text-sm text-gray-900 block">
+                  {user.displayName || user.email}
+                </span>
+                {organization && (
+                  <span className="text-xs text-gray-500">{organization.name}</span>
+                )}
+              </div>
               <Button variant="ghost" size="sm" onClick={handleLogout}>
                 <LogOut className="h-4 w-4 mr-2" />
                 Déconnexion

@@ -101,6 +101,7 @@ export default function TestPage() {
       await addDoc(collection(db, 'submissions'), {
         testId: test.id,
         testTitle: test.title,
+        organizationId: test.organizationId,
         candidateName,
         candidateEmail,
         answers,
@@ -180,6 +181,7 @@ export default function TestPage() {
       await addDoc(collection(db, 'submissions'), {
         testId: test.id,
         testTitle: test.title,
+        organizationId: test.organizationId,
         candidateName,
         candidateEmail,
         answers,

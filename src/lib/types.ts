@@ -1,3 +1,34 @@
+// Organisation
+export interface Organization {
+  id: string;
+  name: string;
+  plan: 'free' | 'pro';
+  testCount: number;
+  createdBy: string;
+  createdAt: Date;
+}
+
+// Utilisateur
+export interface User {
+  uid: string;
+  email: string;
+  displayName: string;
+  organizationId: string;
+  createdAt: Date;
+}
+
+// Invitation
+export interface Invitation {
+  id: string;
+  email: string;
+  organizationId: string;
+  organizationName: string;
+  invitedBy: string;
+  token: string;
+  status: 'pending' | 'accepted';
+  createdAt: Date;
+}
+
 export interface Question {
   id: string;
   question: string;
@@ -7,6 +38,7 @@ export interface Question {
 
 export interface Test {
   id: string;
+  organizationId: string;
   title: string;
   description: string;
   topic: string;
@@ -17,7 +49,7 @@ export interface Test {
   createdBy: string;
   createdAt: Date;
   isActive: boolean;
-  timeLimit?: number; // Temps limite en minutes (optionnel)
+  timeLimit?: number;
 }
 
 export const TEST_CATEGORIES = [
@@ -34,6 +66,7 @@ export const TEST_CATEGORIES = [
 
 export interface Submission {
   id: string;
+  organizationId: string;
   testId: string;
   testTitle: string;
   candidateName: string;
@@ -44,9 +77,16 @@ export interface Submission {
   completedAt: Date;
 }
 
-export interface Admin {
-  uid: string;
-  email: string;
-  displayName: string;
-  createdAt: Date;
-}
+// Plans disponibles
+export const PLANS = {
+  free: {
+    name: 'Gratuit',
+    maxTests: 3,
+    price: 0,
+  },
+  pro: {
+    name: 'Pro',
+    maxTests: Infinity,
+    price: 4.8,
+  },
+} as const;

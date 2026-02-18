@@ -1,14 +1,18 @@
 # ChartMe by imi - Plateforme de Tests de Positionnement
 
-Plateforme permettant aux administrateurs de créer des tests de positionnement QCM générés par IA et de suivre les résultats des candidats.
+Plateforme SaaS multi-tenant permettant aux organisations de créer des tests de positionnement QCM générés par IA et de suivre les résultats des candidats.
 
 ## Fonctionnalités
 
-- 🔐 **Authentification multi-admin** avec Firebase Auth
+- 🏢 **Multi-tenant** : Chaque organisation a ses propres données isolées
+- 👥 **Gestion d'équipe** : Invitez des membres par email
+- 🔐 **Authentification** avec Firebase Auth
 - 🤖 **Génération de questions QCM par IA** via OpenRouter (Claude 3.5 Sonnet)
 - 🔗 **Liens uniques** pour chaque test
-- 📊 **Suivi des résultats** en temps réel
+- 📊 **Dashboard analytics** avec graphiques
+- ⏱️ **Timer** pour les tests chronométrés
 - 📧 **Notifications email** (admin + candidat)
+- 💰 **Plans tarifaires** : Gratuit (3 tests) / Pro (illimité)
 
 ## Stack technique
 
@@ -57,20 +61,35 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Admins - lecture/écriture pour l'utilisateur connecté
-    match /admins/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-    
-    // Tests - création par admin, lecture publique pour les tests actifs
-    match /tests/{testId} {
-      allow read: if resource.data.isActive == true || 
-                    (request.auth != null && resource.data.createdBy == request.auth.uid);
+    // Organisations
+    match /organizations/{orgId} {
+      allow read: if request.auth != null;
       allow create: if request.auth != null;
-      allow update, delete: if request.auth != null && resource.data.createdBy == request.auth.uid;
+      allow update: if request.auth != null;
     }
     
-    // Submissions - création publique, lecture par admin du test
+    // Utilisateurs
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Invitations
+    match /invitations/{inviteId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;
+    }
+    
+    // Tests - lecture publique pour les tests actifs
+    match /tests/{testId} {
+      allow read: if resource.data.isActive == true || request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null;
+    }
+    
+    // Submissions - création publique, lecture par membres de l'organisation
     match /submissions/{submissionId} {
       allow create: if true;
       allow read: if request.auth != null;
@@ -91,17 +110,30 @@ service cloud.firestore {
 ```
 src/
 ├── app/
-│   ├── admin/           # Pages admin (protégées)
-│   │   ├── dashboard/
-│   │   └── tests/
-│   ├── auth/            # Authentification
+│   ├── admin/              # Pages admin (protégées)
+│   │   ├── dashboard/      # Tableau de bord avec analytics
+│   │   ├── organization/   # Gestion de l'organisation
+│   │   └── tests/          # Création et résultats des tests
+│   ├── auth/               # Authentification
 │   │   ├── login/
-│   │   └── register/
-│   ├── test/[uniqueId]/ # Page publique pour candidats
-│   └── api/             # Routes API
-│       ├── generate/    # Génération IA
-│       └── email/       # Envoi d'emails
-├── components/ui/       # Composants shadcn/ui
-├── context/             # AuthContext
-└── lib/                 # Firebase, types, utils
+│   │   ├── register/       # Inscription + création organisation
+│   │   └── invite/[token]/ # Inscription via invitation
+│   ├── test/[uniqueId]/    # Page publique pour candidats
+│   └── api/                # Routes API
+│       ├── generate/       # Génération IA
+│       ├── email/          # Envoi d'emails
+│       └── invite/         # Invitations par email
+├── components/ui/          # Composants shadcn/ui
+├── context/                # AuthContext (user + organization)
+└── lib/                    # Firebase, types, utils
 ```
+
+## Architecture Multi-tenant
+
+| Collection | Description |
+|------------|-------------|
+| `organizations` | Entreprises (nom, plan, testCount) |
+| `users` | Utilisateurs liés à une organisation |
+| `invitations` | Invitations en attente |
+| `tests` | Tests liés à une organisation |
+| `submissions` | Soumissions liées à une organisation |
