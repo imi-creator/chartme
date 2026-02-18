@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
-import { collection, query, where, orderBy, onSnapshot, doc, updateDoc, addDoc, Timestamp } from 'firebase/firestore';
+import { collection, query, where, orderBy, onSnapshot, doc, updateDoc, addDoc, deleteDoc, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/context/AuthContext';
 import { Test, Submission, TEST_CATEGORIES } from '@/lib/types';
@@ -11,7 +11,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Eye, Copy, Users, FileText, TrendingUp, ToggleLeft, ToggleRight, Copy as Duplicate, Award, Target, Calendar } from 'lucide-react';
+import { Plus, Eye, Copy, Users, FileText, TrendingUp, ToggleLeft, ToggleRight, Copy as Duplicate, Award, Target, Calendar, Trash2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { nanoid } from 'nanoid';
 import { toast } from 'sonner';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
@@ -22,6 +23,9 @@ export default function DashboardPage() {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [testToDelete, setTestToDelete] = useState<Test | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!user || !organization) return;
@@ -105,6 +109,27 @@ export default function DashboardPage() {
     } catch (error) {
       console.error(error);
       toast.error('Erreur lors de la duplication');
+    }
+  };
+
+  const confirmDeleteTest = (test: Test) => {
+    setTestToDelete(test);
+    setDeleteDialogOpen(true);
+  };
+
+  const deleteTest = async () => {
+    if (!testToDelete) return;
+    setDeleting(true);
+    try {
+      await deleteDoc(doc(db, 'tests', testToDelete.id));
+      toast.success('Test supprimé avec succès');
+      setDeleteDialogOpen(false);
+      setTestToDelete(null);
+    } catch (error) {
+      console.error(error);
+      toast.error('Erreur lors de la suppression');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -518,6 +543,15 @@ export default function DashboardPage() {
                               <Eye className="h-4 w-4" />
                             </Button>
                           </Link>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => confirmDeleteTest(test)}
+                            title="Supprimer le test"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -528,6 +562,27 @@ export default function DashboardPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Dialog de confirmation de suppression */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Supprimer le test</DialogTitle>
+            <DialogDescription>
+              Êtes-vous sûr de vouloir supprimer le test "{testToDelete?.title}" ?
+              Cette action est irréversible.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} disabled={deleting}>
+              Annuler
+            </Button>
+            <Button variant="destructive" onClick={deleteTest} disabled={deleting}>
+              {deleting ? 'Suppression...' : 'Supprimer'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
