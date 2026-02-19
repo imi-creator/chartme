@@ -28,7 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ArrowLeft, Plus, GraduationCap, Loader2, Trash2, Eye, Calendar, Users } from 'lucide-react';
+import { ArrowLeft, Plus, GraduationCap, Loader2, Trash2, Eye, Calendar, Users, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ParcoursPage() {
@@ -42,8 +42,7 @@ export default function ParcoursPage() {
 
   // Form state
   const [selectedTestId, setSelectedTestId] = useState('');
-  const [candidateName, setCandidateName] = useState('');
-  const [candidateEmail, setCandidateEmail] = useState('');
+  const [candidateEmails, setCandidateEmails] = useState('');
   const [positionnementDate, setPositionnementDate] = useState('');
   const [evaluationDate, setEvaluationDate] = useState('');
 
@@ -97,20 +96,24 @@ export default function ParcoursPage() {
 
   const resetForm = () => {
     setSelectedTestId('');
-    setCandidateName('');
-    setCandidateEmail('');
+    setCandidateEmails('');
     setPositionnementDate('');
     setEvaluationDate('');
   };
 
-  const createTrainingPath = async () => {
-    if (!selectedTestId || !candidateName || !candidateEmail || !positionnementDate || !evaluationDate) {
-      toast.error('Veuillez remplir tous les champs');
-      return;
-    }
+  // Parse emails from textarea (supports comma, semicolon, space, newline separators)
+  const parseEmails = (input: string): string[] => {
+    return input
+      .split(/[,;\s\n]+/)
+      .map((email) => email.trim().toLowerCase())
+      .filter((email) => email.includes('@'));
+  };
 
-    if (!candidateEmail.includes('@')) {
-      toast.error('Veuillez entrer un email valide');
+  const createTrainingPaths = async () => {
+    const emails = parseEmails(candidateEmails);
+    
+    if (!selectedTestId || emails.length === 0 || !positionnementDate || !evaluationDate) {
+      toast.error('Veuillez remplir tous les champs et entrer au moins un email valide');
       return;
     }
 
@@ -122,35 +125,40 @@ export default function ParcoursPage() {
 
     setCreating(true);
     try {
-      await addDoc(collection(db, 'trainingPaths'), {
-        organizationId,
-        testId: selectedTestId,
-        testTitle: selectedTest.title,
-        candidateName,
-        candidateEmail: candidateEmail.toLowerCase(),
-        sessions: [
-          {
-            type: 'positionnement',
-            scheduledDate: Timestamp.fromDate(new Date(positionnementDate)),
-            status: 'pending',
-          },
-          {
-            type: 'evaluation',
-            scheduledDate: Timestamp.fromDate(new Date(evaluationDate)),
-            status: 'pending',
-          },
-        ],
-        createdBy: user?.uid,
-        createdAt: Timestamp.now(),
-        status: 'active',
-      });
+      // Create one training path per email
+      const createPromises = emails.map((email) =>
+        addDoc(collection(db, 'trainingPaths'), {
+          organizationId,
+          testId: selectedTestId,
+          testTitle: selectedTest.title,
+          candidateName: email.split('@')[0], // Use email prefix as default name
+          candidateEmail: email,
+          sessions: [
+            {
+              type: 'positionnement',
+              scheduledDate: Timestamp.fromDate(new Date(positionnementDate)),
+              status: 'pending',
+            },
+            {
+              type: 'evaluation',
+              scheduledDate: Timestamp.fromDate(new Date(evaluationDate)),
+              status: 'pending',
+            },
+          ],
+          createdBy: user?.uid,
+          createdAt: Timestamp.now(),
+          status: 'active',
+        })
+      );
 
-      toast.success('Parcours créé avec succès');
+      await Promise.all(createPromises);
+
+      toast.success(`${emails.length} parcours créé${emails.length > 1 ? 's' : ''} avec succès`);
       setDialogOpen(false);
       resetForm();
     } catch (error) {
       console.error(error);
-      toast.error('Erreur lors de la création du parcours');
+      toast.error('Erreur lors de la création des parcours');
     } finally {
       setCreating(false);
     }
@@ -222,9 +230,9 @@ export default function ParcoursPage() {
           </DialogTrigger>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>Créer un parcours de formation</DialogTitle>
+              <DialogTitle>Créer des parcours de formation</DialogTitle>
               <DialogDescription>
-                Planifiez un test de positionnement et une évaluation finale pour un stagiaire
+                Planifiez un test de positionnement et une évaluation finale pour un ou plusieurs stagiaires
               </DialogDescription>
             </DialogHeader>
 
@@ -246,24 +254,22 @@ export default function ParcoursPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="candidateName">Nom du stagiaire *</Label>
-                <Input
-                  id="candidateName"
-                  placeholder="Jean Dupont"
-                  value={candidateName}
-                  onChange={(e) => setCandidateName(e.target.value)}
+                <Label htmlFor="candidateEmails">Emails des stagiaires *</Label>
+                <textarea
+                  id="candidateEmails"
+                  className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  placeholder="jean.dupont@example.com&#10;marie.martin@example.com&#10;paul.durand@example.com"
+                  value={candidateEmails}
+                  onChange={(e) => setCandidateEmails(e.target.value)}
                 />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="candidateEmail">Email du stagiaire *</Label>
-                <Input
-                  id="candidateEmail"
-                  type="email"
-                  placeholder="jean.dupont@example.com"
-                  value={candidateEmail}
-                  onChange={(e) => setCandidateEmail(e.target.value)}
-                />
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Mail className="h-3 w-3" />
+                  Un email par ligne, ou séparés par des virgules. {parseEmails(candidateEmails).length > 0 && (
+                    <span className="font-medium text-indigo-600">
+                      {parseEmails(candidateEmails).length} email{parseEmails(candidateEmails).length > 1 ? 's' : ''} détecté{parseEmails(candidateEmails).length > 1 ? 's' : ''}
+                    </span>
+                  )}
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -292,14 +298,14 @@ export default function ParcoursPage() {
               <Button variant="outline" onClick={() => setDialogOpen(false)}>
                 Annuler
               </Button>
-              <Button onClick={createTrainingPath} disabled={creating}>
+              <Button onClick={createTrainingPaths} disabled={creating}>
                 {creating ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                     Création...
                   </>
                 ) : (
-                  'Créer le parcours'
+                  `Créer ${parseEmails(candidateEmails).length || 'le'} parcours`
                 )}
               </Button>
             </DialogFooter>
