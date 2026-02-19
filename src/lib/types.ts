@@ -6,6 +6,8 @@ export interface Organization {
   testCount: number;
   createdBy: string;
   createdAt: Date;
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
 }
 
 // Utilisateur
@@ -76,6 +78,40 @@ export interface Submission {
   score: number;
   totalQuestions: number;
   completedAt: Date;
+  sessionType?: 'positionnement' | 'evaluation' | 'libre';
+  trainingPathId?: string;
+}
+
+// Types de session
+export const SESSION_TYPES = [
+  { value: 'positionnement', label: 'Positionnement initial' },
+  { value: 'evaluation', label: 'Évaluation finale' },
+  { value: 'libre', label: 'Passage libre' },
+] as const;
+
+export type SessionType = 'positionnement' | 'evaluation' | 'libre';
+
+// Session planifiée dans un parcours
+export interface PlannedSession {
+  type: SessionType;
+  scheduledDate: Date;
+  status: 'pending' | 'completed';
+  submissionId?: string;
+  completedAt?: Date;
+}
+
+// Parcours de formation
+export interface TrainingPath {
+  id: string;
+  organizationId: string;
+  testId: string;
+  testTitle: string;
+  candidateName: string;
+  candidateEmail: string;
+  sessions: PlannedSession[];
+  createdBy: string;
+  createdAt: Date;
+  status: 'active' | 'completed' | 'cancelled';
 }
 
 // Plans disponibles

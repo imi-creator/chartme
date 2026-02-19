@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Eye, Link2, Users, FileText, TrendingUp, ToggleLeft, ToggleRight, Copy, Award, Target, Calendar, Trash2, Search } from 'lucide-react';
+import { Plus, Eye, Link2, Users, FileText, TrendingUp, ToggleLeft, ToggleRight, Copy, Award, Target, Calendar, Trash2, Search, GraduationCap } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { nanoid } from 'nanoid';
 import { toast } from 'sonner';
@@ -229,12 +229,20 @@ export default function DashboardPage() {
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-gray-600 mt-1">Gérez vos tests de positionnement</p>
         </div>
-        <Link href="/admin/tests/new">
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Nouveau test
-          </Button>
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link href="/admin/parcours">
+            <Button variant="outline">
+              <GraduationCap className="h-4 w-4 mr-2" />
+              Parcours
+            </Button>
+          </Link>
+          <Link href="/admin/tests/new">
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Nouveau test
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">

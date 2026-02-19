@@ -1,0 +1,63 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Fonction helper pour vérifier si l'utilisateur est authentifié
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Fonction helper pour obtenir les données utilisateur
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    
+    // Fonction helper pour vérifier l'appartenance à une organisation
+    function belongsToOrg(orgId) {
+      return isAuthenticated() && getUserData().organizationId == orgId;
+    }
+
+    // Organisations
+    match /organizations/{orgId} {
+      allow read: if belongsToOrg(orgId);
+      allow create: if isAuthenticated();
+      allow update: if belongsToOrg(orgId);
+    }
+
+    // Utilisateurs
+    match /users/{userId} {
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+      allow read: if isAuthenticated();
+    }
+
+    // Invitations
+    match /invitations/{inviteId} {
+      allow read: if true;
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated();
+    }
+
+    // Tests
+    match /tests/{testId} {
+      allow read: if true;
+      allow create: if isAuthenticated();
+      allow update, delete: if isAuthenticated() && belongsToOrg(resource.data.organizationId);
+    }
+
+    // Submissions
+    match /submissions/{submissionId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if isAuthenticated();
+    }
+
+    // Training Paths (Parcours de formation)
+    match /trainingPaths/{pathId} {
+      allow read: if isAuthenticated() && belongsToOrg(resource.data.organizationId);
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && belongsToOrg(resource.data.organizationId);
+      allow delete: if isAuthenticated() && belongsToOrg(resource.data.organizationId);
+    }
+  }
+}

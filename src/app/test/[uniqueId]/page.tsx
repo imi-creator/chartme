@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { collection, query, where, getDocs, addDoc, Timestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, Timestamp, doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { Test, Question } from '@/lib/types';
+import { Test, Question, TrainingPath, SessionType } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,6 +29,8 @@ export default function TestPage() {
   const [submitting, setSubmitting] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const [timerExpired, setTimerExpired] = useState(false);
+  const [trainingPath, setTrainingPath] = useState<TrainingPath | null>(null);
+  const [currentSessionType, setCurrentSessionType] = useState<SessionType>('libre');
 
   useEffect(() => {
     const fetchTest = async () => {
@@ -98,7 +100,7 @@ export default function TestPage() {
         }
       });
 
-      await addDoc(collection(db, 'submissions'), {
+      const submissionRef2 = await addDoc(collection(db, 'submissions'), {
         testId: test.id,
         testTitle: test.title,
         organizationId: test.organizationId,
@@ -108,7 +110,31 @@ export default function TestPage() {
         score,
         totalQuestions: test.questions.length,
         completedAt: Timestamp.now(),
+        sessionType: currentSessionType,
+        trainingPathId: trainingPath?.id || null,
       });
+
+      // Mettre à jour le parcours si existant
+      if (trainingPath) {
+        const updatedSessions = trainingPath.sessions.map((session) => {
+          if (session.type === currentSessionType && session.status === 'pending') {
+            return {
+              ...session,
+              status: 'completed' as const,
+              submissionId: submissionRef2.id,
+              completedAt: new Date(),
+            };
+          }
+          return session;
+        });
+
+        const allCompleted = updatedSessions.every((s) => s.status === 'completed');
+
+        await updateDoc(doc(db, 'trainingPaths', trainingPath.id), {
+          sessions: updatedSessions,
+          status: allCompleted ? 'completed' : 'active',
+        });
+      }
 
       await fetch('/api/email', {
         method: 'POST',
@@ -139,6 +165,42 @@ export default function TestPage() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const checkTrainingPath = async () => {
+    if (!test) return;
+    try {
+      const pathsQuery = query(
+        collection(db, 'trainingPaths'),
+        where('testId', '==', test.id),
+        where('candidateEmail', '==', candidateEmail.toLowerCase()),
+        where('status', '==', 'active')
+      );
+      const snapshot = await getDocs(pathsQuery);
+
+      if (!snapshot.empty) {
+        const pathData = {
+          id: snapshot.docs[0].id,
+          ...snapshot.docs[0].data(),
+          createdAt: snapshot.docs[0].data().createdAt?.toDate(),
+          sessions: snapshot.docs[0].data().sessions.map((s: { scheduledDate: { toDate: () => Date }; completedAt?: { toDate: () => Date } }) => ({
+            ...s,
+            scheduledDate: s.scheduledDate?.toDate(),
+            completedAt: s.completedAt?.toDate(),
+          })),
+        } as TrainingPath;
+
+        setTrainingPath(pathData);
+
+        // Trouver la prochaine session à compléter
+        const pendingSession = pathData.sessions.find((s) => s.status === 'pending');
+        if (pendingSession) {
+          setCurrentSessionType(pendingSession.type);
+        }
+      }
+    } catch (error) {
+      console.error('Erreur lors de la vérification du parcours:', error);
+    }
+  };
+
   const startTest = () => {
     if (!candidateName || !candidateEmail) {
       toast.error('Veuillez remplir tous les champs');
@@ -151,6 +213,9 @@ export default function TestPage() {
     if (test?.timeLimit) {
       setTimeRemaining(test.timeLimit * 60);
     }
+
+    // Vérifier si un parcours existe pour ce candidat et ce test
+    checkTrainingPath();
     setStep('questions');
   };
 
@@ -178,7 +243,7 @@ export default function TestPage() {
         }
       });
 
-      await addDoc(collection(db, 'submissions'), {
+      const submissionRef = await addDoc(collection(db, 'submissions'), {
         testId: test.id,
         testTitle: test.title,
         organizationId: test.organizationId,
@@ -188,7 +253,31 @@ export default function TestPage() {
         score,
         totalQuestions: test.questions.length,
         completedAt: Timestamp.now(),
+        sessionType: currentSessionType,
+        trainingPathId: trainingPath?.id || null,
       });
+
+      // Mettre à jour le parcours si existant
+      if (trainingPath) {
+        const updatedSessions = trainingPath.sessions.map((session) => {
+          if (session.type === currentSessionType && session.status === 'pending') {
+            return {
+              ...session,
+              status: 'completed' as const,
+              submissionId: submissionRef.id,
+              completedAt: new Date(),
+            };
+          }
+          return session;
+        });
+
+        const allCompleted = updatedSessions.every((s) => s.status === 'completed');
+
+        await updateDoc(doc(db, 'trainingPaths', trainingPath.id), {
+          sessions: updatedSessions,
+          status: allCompleted ? 'completed' : 'active',
+        });
+      }
 
       await fetch('/api/email', {
         method: 'POST',

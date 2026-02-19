@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
           <p>Bonjour ${candidateName},</p>
           <p>Votre test "<strong>${testTitle}</strong>" a bien été soumis.</p>
           <p>L'administrateur du test analysera vos résultats et vous contactera si nécessaire.</p>
-          <p>Cordialement,<br>L'équipe ChartMe by imi</p>
+          <p>Cordialement,<br>L'équipe ChartMe by imi executive solutions</p>
         `,
       }),
     });

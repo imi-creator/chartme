@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ChartMe by imi - Plateforme de Tests de Positionnement",
+  title: "ChartMe by imi - Plateforme de Quiz",
   description: "Créez et gérez des tests de positionnement avec l'IA",
 };
 

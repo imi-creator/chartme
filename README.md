@@ -33,12 +33,24 @@ npm install
 ```env
 OPENROUTER_API_KEY=votre_cle_openrouter
 
+# Firebase Client
 NEXT_PUBLIC_FIREBASE_API_KEY=votre_api_key
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=votre_projet.firebaseapp.com
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=votre_projet
 NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=votre_projet.appspot.com
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123456789
 NEXT_PUBLIC_FIREBASE_APP_ID=1:123456789:web:abc123
+
+# Firebase Admin (pour webhooks Stripe)
+FIREBASE_ADMIN_PROJECT_ID=votre_projet
+FIREBASE_ADMIN_CLIENT_EMAIL=firebase-adminsdk@votre_projet.iam.gserviceaccount.com
+FIREBASE_ADMIN_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+
+# Stripe
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_xxx
+STRIPE_SECRET_KEY=sk_test_xxx
+STRIPE_WEBHOOK_SECRET=whsec_xxx
+STRIPE_PRICE_ID=price_xxx
 
 RESEND_API_KEY=re_xxxxx (optionnel)
 
@@ -122,7 +134,8 @@ src/
 │   └── api/                # Routes API
 │       ├── generate/       # Génération IA
 │       ├── email/          # Envoi d'emails
-│       └── invite/         # Invitations par email
+│       ├── invite/         # Invitations par email
+│       └── stripe/         # Checkout, webhooks, portail
 ├── components/ui/          # Composants shadcn/ui
 ├── context/                # AuthContext (user + organization)
 └── lib/                    # Firebase, types, utils

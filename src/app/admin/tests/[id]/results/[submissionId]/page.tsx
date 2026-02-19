@@ -1,6 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { doc, getDoc } from 'firebase/firestore';
@@ -9,7 +11,8 @@ import { Test, Submission } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, CheckCircle, XCircle, User, Mail, Calendar, Loader2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle, XCircle, User, Mail, Calendar, Loader2, Download } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function SubmissionDetailPage() {
   const params = useParams();
@@ -19,6 +22,8 @@ export default function SubmissionDetailPage() {
   const [test, setTest] = useState<Test | null>(null);
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -74,18 +79,79 @@ export default function SubmissionDetailPage() {
 
   const percentage = Math.round((submission.score / submission.totalQuestions) * 100);
 
+  const exportToPDF = async () => {
+    if (!contentRef.current || !test || !submission) return;
+    
+    setExporting(true);
+    try {
+      const canvas = await html2canvas(contentRef.current, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+      
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+      const imgX = (pdfWidth - imgWidth * ratio) / 2;
+      const imgY = 10;
+      
+      const scaledHeight = imgHeight * ratio;
+      const pageHeight = pdfHeight - 20;
+      let heightLeft = scaledHeight;
+      let position = imgY;
+      
+      pdf.addImage(imgData, 'PNG', imgX, position, imgWidth * ratio, scaledHeight);
+      heightLeft -= pageHeight;
+      
+      while (heightLeft > 0) {
+        position = heightLeft - scaledHeight + imgY;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', imgX, position, imgWidth * ratio, scaledHeight);
+        heightLeft -= pageHeight;
+      }
+      
+      const fileName = `resultat_${submission.candidateName.replace(/\s+/g, '_')}_${test.title.replace(/\s+/g, '_')}.pdf`;
+      pdf.save(fileName);
+      toast.success('PDF exporté avec succès');
+    } catch (error) {
+      console.error('Erreur lors de l\'export PDF:', error);
+      toast.error('Erreur lors de l\'export PDF');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <div className="space-y-8">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between">
         <Link href={`/admin/tests/${testId}/results`}>
           <Button variant="ghost" size="sm">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Retour aux résultats
           </Button>
         </Link>
+        <Button onClick={exportToPDF} disabled={exporting}>
+          {exporting ? (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          ) : (
+            <Download className="h-4 w-4 mr-2" />
+          )}
+          Exporter en PDF
+        </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div ref={contentRef} className="grid grid-cols-1 lg:grid-cols-3 gap-6 bg-white p-4 rounded-lg">
         <Card className="lg:col-span-1">
           <CardHeader>
             <CardTitle>Informations du candidat</CardTitle>
