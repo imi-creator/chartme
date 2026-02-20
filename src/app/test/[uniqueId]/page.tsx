@@ -117,15 +117,23 @@ export default function TestPage() {
       // Mettre à jour le parcours si existant
       if (trainingPath) {
         const updatedSessions = trainingPath.sessions.map((session) => {
+          const baseSession: Record<string, unknown> = {
+            type: session.type,
+            scheduledDate: session.scheduledDate instanceof Date ? Timestamp.fromDate(session.scheduledDate) : session.scheduledDate,
+            status: session.status,
+          };
+          if (session.submissionId) baseSession.submissionId = session.submissionId;
+          if (session.completedAt) baseSession.completedAt = session.completedAt instanceof Date ? Timestamp.fromDate(session.completedAt) : session.completedAt;
+
           if (session.type === currentSessionType && session.status === 'pending') {
             return {
-              ...session,
-              status: 'completed' as const,
+              ...baseSession,
+              status: 'completed',
               submissionId: submissionRef2.id,
-              completedAt: new Date(),
+              completedAt: Timestamp.now(),
             };
           }
-          return session;
+          return baseSession;
         });
 
         const allCompleted = updatedSessions.every((s) => s.status === 'completed');
@@ -201,7 +209,7 @@ export default function TestPage() {
     }
   };
 
-  const startTest = () => {
+  const startTest = async () => {
     if (!candidateName || !candidateEmail) {
       toast.error('Veuillez remplir tous les champs');
       return;
@@ -215,7 +223,7 @@ export default function TestPage() {
     }
 
     // Vérifier si un parcours existe pour ce candidat et ce test
-    checkTrainingPath();
+    await checkTrainingPath();
     setStep('questions');
   };
 
@@ -260,15 +268,23 @@ export default function TestPage() {
       // Mettre à jour le parcours si existant
       if (trainingPath) {
         const updatedSessions = trainingPath.sessions.map((session) => {
+          const baseSession: Record<string, unknown> = {
+            type: session.type,
+            scheduledDate: session.scheduledDate instanceof Date ? Timestamp.fromDate(session.scheduledDate) : session.scheduledDate,
+            status: session.status,
+          };
+          if (session.submissionId) baseSession.submissionId = session.submissionId;
+          if (session.completedAt) baseSession.completedAt = session.completedAt instanceof Date ? Timestamp.fromDate(session.completedAt) : session.completedAt;
+
           if (session.type === currentSessionType && session.status === 'pending') {
             return {
-              ...session,
-              status: 'completed' as const,
+              ...baseSession,
+              status: 'completed',
               submissionId: submissionRef.id,
-              completedAt: new Date(),
+              completedAt: Timestamp.now(),
             };
           }
-          return session;
+          return baseSession;
         });
 
         const allCompleted = updatedSessions.every((s) => s.status === 'completed');

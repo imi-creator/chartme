@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { TrainingPath, Submission, Test, SESSION_TYPES } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,9 @@ import {
   Clock,
   FileText,
   BarChart3,
+  Share2,
+  Check,
+  Copy,
 } from 'lucide-react';
 
 interface QuestionComparison {
@@ -44,6 +47,8 @@ export default function ParcoursDetailPage() {
   const [submissions, setSubmissions] = useState<{ positionnement?: Submission; evaluation?: Submission }>({});
   const [loading, setLoading] = useState(true);
   const [comparisons, setComparisons] = useState<QuestionComparison[]>([]);
+  const [copying, setCopying] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -152,6 +157,33 @@ export default function ParcoursDetailPage() {
 
   const progress = calculateProgress();
 
+  const handleShareReport = async () => {
+    if (!trainingPath) return;
+    
+    setCopying(true);
+    try {
+      let token = trainingPath.shareToken;
+      
+      // Générer un token si inexistant
+      if (!token) {
+        token = crypto.randomUUID();
+        await updateDoc(doc(db, 'trainingPaths', pathId), {
+          shareToken: token,
+        });
+        setTrainingPath({ ...trainingPath, shareToken: token });
+      }
+      
+      const shareUrl = `${window.location.origin}/rapport/${token}`;
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error('Erreur lors du partage:', error);
+    } finally {
+      setCopying(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -180,6 +212,18 @@ export default function ParcoursDetailPage() {
             Retour aux parcours
           </Button>
         </Link>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleShareReport}
+          disabled={copying}
+        >
+          {copied ? (
+            <><Check className="h-4 w-4 mr-2 text-green-600" />Lien copié !</>
+          ) : (
+            <><Share2 className="h-4 w-4 mr-2" />Partager le rapport</>
+          )}
+        </Button>
       </div>
 
       {/* Informations du stagiaire */}

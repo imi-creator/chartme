@@ -112,6 +112,7 @@ export interface TrainingPath {
   createdBy: string;
   createdAt: Date;
   status: 'active' | 'completed' | 'cancelled';
+  shareToken?: string; // Token unique pour partage public du rapport
 }
 
 // Plans disponibles

@@ -54,7 +54,9 @@ service cloud.firestore {
 
     // Training Paths (Parcours de formation)
     match /trainingPaths/{pathId} {
-      allow read: if isAuthenticated() && belongsToOrg(resource.data.organizationId);
+      // Lecture autorisée si: membre de l'org OU si le document a un shareToken (rapport partagé)
+      allow read: if (isAuthenticated() && belongsToOrg(resource.data.organizationId)) 
+                  || resource.data.shareToken != null;
       allow create: if isAuthenticated();
       allow update: if isAuthenticated() && belongsToOrg(resource.data.organizationId);
       allow delete: if isAuthenticated() && belongsToOrg(resource.data.organizationId);
