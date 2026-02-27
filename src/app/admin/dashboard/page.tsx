@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Eye, Link2, Users, FileText, TrendingUp, ToggleLeft, ToggleRight, Copy, Award, Target, Calendar, Trash2, Search, GraduationCap } from 'lucide-react';
+import { Plus, Eye, Link2, Users, FileText, TrendingUp, ToggleLeft, ToggleRight, Copy, Award, Target, Calendar, Trash2, Search, GraduationCap, Pencil } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { nanoid } from 'nanoid';
 import { toast } from 'sonner';
@@ -104,6 +104,7 @@ export default function DashboardPage() {
         createdBy: user?.uid,
         createdAt: Timestamp.now(),
         isActive: false,
+        submissionCount: 0,
         ...(test.timeLimit && { timeLimit: test.timeLimit }),
         ...(test.category && { category: test.category }),
       });
@@ -567,6 +568,11 @@ export default function DashboardPage() {
                           >
                             <Copy className="h-4 w-4" />
                           </Button>
+                          <Link href={`/admin/tests/${test.id}/edit`}>
+                            <Button variant="ghost" size="sm" title="Modifier le test">
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          </Link>
                           <Link href={`/admin/tests/${test.id}/results`}>
                             <Button variant="ghost" size="sm" title="Voir les résultats">
                               <Eye className="h-4 w-4" />

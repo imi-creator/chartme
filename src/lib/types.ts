@@ -53,6 +53,7 @@ export interface Test {
   createdAt: Date;
   isActive: boolean;
   timeLimit?: number;
+  submissionCount: number;
 }
 
 export const TEST_CATEGORIES = [

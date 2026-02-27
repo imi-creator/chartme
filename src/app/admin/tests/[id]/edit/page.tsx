@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { collection, addDoc, Timestamp, doc, updateDoc, increment } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { doc, getDoc, updateDoc, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/context/AuthContext';
-import { Question, TEST_CATEGORIES, PLANS } from '@/lib/types';
+import { Question, Test, TEST_CATEGORIES } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,36 +14,73 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Loader2, Sparkles, Save, CheckCircle, XCircle, Pencil, Trash2, Plus } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Loader2, Save, CheckCircle, XCircle, Pencil, Trash2, Plus, ArrowLeft, AlertTriangle, Lock } from 'lucide-react';
 import { toast } from 'sonner';
-import { nanoid } from 'nanoid';
 
-export default function NewTestPage() {
+export default function EditTestPage() {
   const { user, organization } = useAuth();
   const router = useRouter();
-  
-  const [testId, setTestId] = useState(nanoid(8));
+  const params = useParams();
+  const testId = params.id as string;
+
+  const [loading, setLoading] = useState(true);
+  const [test, setTest] = useState<Test | null>(null);
+  const [hasSubmissions, setHasSubmissions] = useState(false);
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [topic, setTopic] = useState('');
-  const [numberOfQuestions, setNumberOfQuestions] = useState(10);
   const [difficulty, setDifficulty] = useState<'facile' | 'moyen' | 'difficile'>('moyen');
   const [timeLimit, setTimeLimit] = useState<number | null>(null);
   const [category, setCategory] = useState<string>('');
-  
   const [questions, setQuestions] = useState<Question[]>([]);
-  const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
-  
+
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [isNewQuestion, setIsNewQuestion] = useState(false);
-  
+
   const [editForm, setEditForm] = useState({
     question: '',
     options: ['', '', '', ''],
     correctAnswer: 0,
   });
+
+  useEffect(() => {
+    const fetchTest = async () => {
+      try {
+        const testDoc = await getDoc(doc(db, 'tests', testId));
+        if (testDoc.exists()) {
+          const testData = {
+            id: testDoc.id,
+            ...testDoc.data(),
+            createdAt: testDoc.data().createdAt?.toDate(),
+          } as Test;
+
+          setTest(testData);
+          setTitle(testData.title);
+          setDescription(testData.description || '');
+          setTopic(testData.topic || '');
+          setDifficulty(testData.difficulty);
+          setTimeLimit(testData.timeLimit || null);
+          setCategory(testData.category || '');
+          setQuestions(testData.questions);
+          setHasSubmissions((testData.submissionCount || 0) > 0);
+        } else {
+          toast.error('Test introuvable');
+          router.push('/admin/dashboard');
+        }
+      } catch (error) {
+        console.error(error);
+        toast.error('Erreur lors du chargement du test');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTest();
+  }, [testId, router]);
 
   const openEditDialog = (question: Question) => {
     setEditingQuestion(question);
@@ -86,8 +124,8 @@ export default function NewTestPage() {
       setQuestions([...questions, newQuestion]);
       toast.success('Question ajoutée');
     } else if (editingQuestion) {
-      setQuestions(questions.map(q => 
-        q.id === editingQuestion.id 
+      setQuestions(questions.map(q =>
+        q.id === editingQuestion.id
           ? { ...q, question: editForm.question, options: editForm.options, correctAnswer: editForm.correctAnswer }
           : q
       ));
@@ -107,81 +145,31 @@ export default function NewTestPage() {
     setEditForm({ ...editForm, options: newOptions });
   };
 
-  const generateQuestions = async () => {
-    if (!topic) {
-      toast.error('Veuillez entrer un sujet');
-      return;
-    }
-
-    setGenerating(true);
-    try {
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic, numberOfQuestions, difficulty }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Erreur de génération');
-      }
-
-      const data = await response.json();
-      setQuestions(data.questions);
-      toast.success(`${data.questions.length} questions générées avec succès`);
-    } catch (error) {
-      console.error(error);
-      toast.error('Erreur lors de la génération des questions');
-    } finally {
-      setGenerating(false);
-    }
-  };
-
   const saveTest = async () => {
-    if (!organization) return;
-    
+    if (!organization || !test) return;
+
     if (!title) {
       toast.error('Veuillez entrer un titre');
       return;
     }
     if (questions.length === 0) {
-      toast.error('Veuillez générer des questions');
-      return;
-    }
-
-    // Vérifier la limite du plan gratuit
-    const plan = PLANS[organization.plan];
-    if (organization.plan === 'free' && organization.testCount >= plan.maxTests) {
-      toast.error(`Limite atteinte ! Le plan gratuit est limité à ${plan.maxTests} tests. Passez au plan Pro pour créer plus de tests.`);
+      toast.error('Le test doit contenir au moins une question');
       return;
     }
 
     setSaving(true);
     try {
-      const uniqueLink = nanoid(10);
-      
-      await addDoc(collection(db, 'tests'), {
-        testId,
+      await updateDoc(doc(db, 'tests', testId), {
         title,
         description,
         topic,
         difficulty,
         questions,
-        uniqueLink,
-        organizationId: organization.id,
-        createdBy: user?.uid,
-        createdAt: Timestamp.now(),
-        isActive: true,
-        submissionCount: 0,
-        ...(timeLimit && { timeLimit }),
-        ...(category && { category }),
+        ...(timeLimit ? { timeLimit } : { timeLimit: null }),
+        ...(category ? { category } : { category: null }),
       });
 
-      // Incrémenter le compteur de tests de l'organisation
-      await updateDoc(doc(db, 'organizations', organization.id), {
-        testCount: increment(1),
-      });
-
-      toast.success('Test créé avec succès');
+      toast.success('Test modifié avec succès');
       router.push('/admin/dashboard');
     } catch (error) {
       console.error(error);
@@ -191,17 +179,108 @@ export default function NewTestPage() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+      </div>
+    );
+  }
+
+  if (!test) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-500">Test introuvable</p>
+        <Link href="/admin/dashboard">
+          <Button variant="link">Retour au dashboard</Button>
+        </Link>
+      </div>
+    );
+  }
+
+  if (hasSubmissions) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-8">
+        <div className="flex items-center gap-4">
+          <Link href="/admin/dashboard">
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Retour
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Modifier le test</h1>
+            <p className="text-gray-600 mt-1">{test.title}</p>
+          </div>
+        </div>
+
+        <Alert variant="destructive">
+          <Lock className="h-4 w-4" />
+          <AlertTitle>Modification impossible</AlertTitle>
+          <AlertDescription>
+            Ce test ne peut plus être modifié car des candidats l'ont déjà passé ({test.submissionCount} participation{test.submissionCount > 1 ? 's' : ''}).
+            <br /><br />
+            Modifier les questions ou les réponses après que des candidats aient passé le test fausserait leurs résultats.
+          </AlertDescription>
+        </Alert>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Que faire ?</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-gray-600">Vous avez plusieurs options :</p>
+            <ul className="list-disc list-inside space-y-2 text-gray-600">
+              <li><strong>Créer un nouveau test</strong> — Dupliquez ce test et apportez vos modifications sur la copie</li>
+              <li><strong>Consulter les résultats</strong> — Analysez les performances des candidats</li>
+              <li><strong>Désactiver ce test</strong> — Empêchez de nouvelles participations</li>
+            </ul>
+            <div className="flex gap-4 pt-4">
+              <Link href="/admin/tests/new">
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Créer un nouveau test
+                </Button>
+              </Link>
+              <Link href={`/admin/tests/${testId}/results`}>
+                <Button variant="outline">
+                  Voir les résultats
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Créer un nouveau test</h1>
-        <p className="text-gray-600 mt-1">Utilisez l'IA pour générer automatiquement vos questions</p>
+      <div className="flex items-center gap-4">
+        <Link href="/admin/dashboard">
+          <Button variant="ghost" size="sm">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Retour
+          </Button>
+        </Link>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Modifier le test</h1>
+          <p className="text-gray-600 mt-1">Modifiez les informations et les questions du test</p>
+        </div>
       </div>
+
+      <Alert>
+        <AlertTriangle className="h-4 w-4" />
+        <AlertTitle>Aucune participation</AlertTitle>
+        <AlertDescription>
+          Ce test n'a pas encore été passé par des candidats. Vous pouvez le modifier librement.
+        </AlertDescription>
+      </Alert>
 
       <Card>
         <CardHeader>
           <CardTitle>Informations du test</CardTitle>
-          <CardDescription>Définissez les paramètres de votre test</CardDescription>
+          <CardDescription>Modifiez les paramètres de votre test</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -212,16 +291,6 @@ export default function NewTestPage() {
                 placeholder="Ex: Test de JavaScript"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="testId">ID du test</Label>
-              <Input
-                id="testId"
-                placeholder="ID unique"
-                value={testId}
-                onChange={(e) => setTestId(e.target.value)}
-                className="font-mono"
               />
             </div>
             <div className="space-y-2">
@@ -239,8 +308,8 @@ export default function NewTestPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="timeLimit">Temps limite (optionnel)</Label>
-              <Select 
-                value={timeLimit?.toString() || 'none'} 
+              <Select
+                value={timeLimit?.toString() || 'none'}
                 onValueChange={(v) => setTimeLimit(v === 'none' ? null : parseInt(v))}
               >
                 <SelectTrigger>
@@ -262,8 +331,8 @@ export default function NewTestPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="category">Catégorie (optionnel)</Label>
-              <Select 
-                value={category || 'none'} 
+              <Select
+                value={category || 'none'}
                 onValueChange={(v) => setCategory(v === 'none' ? '' : v)}
               >
                 <SelectTrigger>
@@ -280,7 +349,7 @@ export default function NewTestPage() {
               </Select>
             </div>
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="description">Description (optionnel)</Label>
             <Textarea
@@ -290,94 +359,55 @@ export default function NewTestPage() {
               onChange={(e) => setDescription(e.target.value)}
             />
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="topic">Sujet du test</Label>
+            <Textarea
+              id="topic"
+              placeholder="Ex: Les bases de JavaScript : variables, fonctions, boucles..."
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+              rows={2}
+            />
+          </div>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-indigo-600" />
-            Génération IA
-          </CardTitle>
-          <CardDescription>Décrivez le sujet et laissez l'IA générer les questions</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="topic">Sujet du test *</Label>
-            <Textarea
-              id="topic"
-              placeholder="Ex: Les bases de JavaScript : variables, fonctions, boucles, conditions, tableaux..."
-              value={topic}
-              onChange={(e) => setTopic(e.target.value)}
-              rows={3}
-            />
-          </div>
-          
-          <div className="flex items-center gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="numQuestions">Nombre de questions</Label>
-              <Input
-                id="numQuestions"
-                type="number"
-                min={5}
-                max={30}
-                value={numberOfQuestions}
-                onChange={(e) => setNumberOfQuestions(parseInt(e.target.value))}
-                className="w-24"
-              />
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Questions ({questions.length})</CardTitle>
+              <CardDescription>Modifiez, supprimez ou ajoutez des questions</CardDescription>
             </div>
-            <Button 
-              onClick={generateQuestions} 
-              disabled={generating || !topic}
-              className="mt-6"
-            >
-              {generating ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Génération...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  Générer les questions
-                </>
-              )}
+            <Button onClick={openAddDialog} variant="outline">
+              <Plus className="h-4 w-4 mr-2" />
+              Ajouter une question
             </Button>
           </div>
-        </CardContent>
-      </Card>
-
-      {questions.length > 0 && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Questions ({questions.length})</CardTitle>
-                <CardDescription>Modifiez, supprimez ou ajoutez des questions</CardDescription>
-              </div>
-              <Button onClick={openAddDialog} variant="outline">
-                <Plus className="h-4 w-4 mr-2" />
-                Ajouter une question
-              </Button>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {questions.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <p>Aucune question. Ajoutez-en une pour commencer.</p>
             </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {questions.map((q, index) => (
+          ) : (
+            questions.map((q, index) => (
               <div key={q.id} className="p-4 bg-gray-50 rounded-lg">
                 <div className="flex items-start justify-between mb-3">
                   <p className="font-medium flex-1">
                     {index + 1}. {q.question}
                   </p>
                   <div className="flex items-center gap-1 ml-4">
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       size="sm"
                       onClick={() => openEditDialog(q)}
                     >
                       <Pencil className="h-4 w-4" />
                     </Button>
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       size="sm"
                       onClick={() => deleteQuestion(q.id)}
                       className="text-red-600 hover:text-red-700 hover:bg-red-50"
@@ -390,11 +420,10 @@ export default function NewTestPage() {
                   {q.options.map((option, optIndex) => (
                     <div
                       key={optIndex}
-                      className={`p-2 rounded flex items-center gap-2 ${
-                        optIndex === q.correctAnswer
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-white border'
-                      }`}
+                      className={`p-2 rounded flex items-center gap-2 ${optIndex === q.correctAnswer
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-white border'
+                        }`}
                     >
                       {optIndex === q.correctAnswer ? (
                         <CheckCircle className="h-4 w-4 text-green-600" />
@@ -406,10 +435,10 @@ export default function NewTestPage() {
                   ))}
                 </div>
               </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
+            ))
+          )}
+        </CardContent>
+      </Card>
 
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="max-w-2xl">
@@ -437,11 +466,10 @@ export default function NewTestPage() {
                   <button
                     type="button"
                     onClick={() => setEditForm({ ...editForm, correctAnswer: index })}
-                    className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${
-                      editForm.correctAnswer === index
-                        ? 'bg-green-600 text-white'
-                        : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-                    }`}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${editForm.correctAnswer === index
+                      ? 'bg-green-600 text-white'
+                      : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                      }`}
                   >
                     {String.fromCharCode(65 + index)}
                   </button>
@@ -470,23 +498,21 @@ export default function NewTestPage() {
         </DialogContent>
       </Dialog>
 
-      {questions.length > 0 && (
-        <div className="flex justify-end">
-          <Button onClick={saveTest} disabled={saving} size="lg">
-            {saving ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Sauvegarde...
-              </>
-            ) : (
-              <>
-                <Save className="mr-2 h-4 w-4" />
-                Sauvegarder le test
-              </>
-            )}
-          </Button>
-        </div>
-      )}
+      <div className="flex justify-end">
+        <Button onClick={saveTest} disabled={saving} size="lg">
+          {saving ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Sauvegarde...
+            </>
+          ) : (
+            <>
+              <Save className="mr-2 h-4 w-4" />
+              Sauvegarder les modifications
+            </>
+          )}
+        </Button>
+      </div>
     </div>
   );
 }

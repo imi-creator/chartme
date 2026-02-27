@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { collection, query, where, getDocs, addDoc, Timestamp, doc, updateDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, Timestamp, doc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Test, Question, TrainingPath, SessionType } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -112,6 +112,11 @@ export default function TestPage() {
         completedAt: Timestamp.now(),
         sessionType: currentSessionType,
         trainingPathId: trainingPath?.id || null,
+      });
+
+      // Incrémenter le compteur de submissions du test
+      await updateDoc(doc(db, 'tests', test.id), {
+        submissionCount: increment(1),
       });
 
       // Mettre à jour le parcours si existant
@@ -263,6 +268,11 @@ export default function TestPage() {
         completedAt: Timestamp.now(),
         sessionType: currentSessionType,
         trainingPathId: trainingPath?.id || null,
+      });
+
+      // Incrémenter le compteur de submissions du test
+      await updateDoc(doc(db, 'tests', test.id), {
+        submissionCount: increment(1),
       });
 
       // Mettre à jour le parcours si existant

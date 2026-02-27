@@ -42,7 +42,11 @@ service cloud.firestore {
     match /tests/{testId} {
       allow read: if true;
       allow create: if isAuthenticated();
-      allow update, delete: if isAuthenticated() && belongsToOrg(resource.data.organizationId);
+      // Autoriser update complet seulement si pas de submissions (submissionCount == 0)
+      // OU si c'est juste une incrémentation du submissionCount (pour les soumissions de candidats)
+      allow update: if (isAuthenticated() && belongsToOrg(resource.data.organizationId) && resource.data.submissionCount == 0)
+                    || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['submissionCount']));
+      allow delete: if isAuthenticated() && belongsToOrg(resource.data.organizationId);
     }
 
     // Submissions
