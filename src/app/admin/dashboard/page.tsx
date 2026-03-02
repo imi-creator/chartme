@@ -227,18 +227,18 @@ export default function DashboardPage() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600 mt-1">Gérez vos tests de positionnement</p>
+          <h1 className="text-4xl font-bold text-black">Dashboard</h1>
+          <p className="text-black/50 mt-2">Gérez vos tests de positionnement</p>
         </div>
         <div className="flex items-center gap-3">
           <Link href="/admin/parcours">
-            <Button variant="outline">
+            <Button variant="outline" className="border-black/20 hover:bg-black/5">
               <GraduationCap className="h-4 w-4 mr-2" />
               Parcours
             </Button>
           </Link>
           <Link href="/admin/tests/new">
-            <Button>
+            <Button className="bg-[#0a38fd] hover:bg-[#0a38fd]/90 text-white">
               <Plus className="h-4 w-4 mr-2" />
               Nouveau test
             </Button>
@@ -247,58 +247,70 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <Card>
+        <Card className="border-black/10 bg-white hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Tests créés</CardTitle>
-            <FileText className="h-4 w-4 text-indigo-600" />
+            <CardTitle className="text-sm font-medium text-black/50">Tests créés</CardTitle>
+            <div className="w-8 h-8 bg-[#0a38fd]/10 rounded-lg flex items-center justify-center">
+              <FileText className="h-4 w-4 text-[#0a38fd]" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{tests.length}</div>
+            <div className="text-3xl font-bold text-black">{tests.length}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-black/10 bg-white hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Tests actifs</CardTitle>
-            <Target className="h-4 w-4 text-emerald-600" />
+            <CardTitle className="text-sm font-medium text-black/50">Tests actifs</CardTitle>
+            <div className="w-8 h-8 bg-emerald-500/10 rounded-lg flex items-center justify-center">
+              <Target className="h-4 w-4 text-emerald-600" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{activeTests}</div>
+            <div className="text-3xl font-bold text-black">{activeTests}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-black/10 bg-white hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Participations</CardTitle>
-            <Users className="h-4 w-4 text-green-600" />
+            <CardTitle className="text-sm font-medium text-black/50">Participations</CardTitle>
+            <div className="w-8 h-8 bg-green-500/10 rounded-lg flex items-center justify-center">
+              <Users className="h-4 w-4 text-green-600" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalSubmissions}</div>
+            <div className="text-3xl font-bold text-black">{totalSubmissions}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-black/10 bg-white hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Score moyen</CardTitle>
-            <TrendingUp className="h-4 w-4 text-orange-600" />
+            <CardTitle className="text-sm font-medium text-black/50">Score moyen</CardTitle>
+            <div className="w-8 h-8 bg-orange-500/10 rounded-lg flex items-center justify-center">
+              <TrendingUp className="h-4 w-4 text-orange-600" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{averageScore}%</div>
+            <div className="text-3xl font-bold text-black">{averageScore}%</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-black/10 bg-white hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Meilleur score</CardTitle>
-            <Award className="h-4 w-4 text-yellow-600" />
+            <CardTitle className="text-sm font-medium text-black/50">Meilleur score</CardTitle>
+            <div className="w-8 h-8 bg-yellow-500/10 rounded-lg flex items-center justify-center">
+              <Award className="h-4 w-4 text-yellow-600" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{bestScore}%</div>
+            <div className="text-3xl font-bold text-black">{bestScore}%</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-black/10 bg-white hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Cette semaine</CardTitle>
-            <Calendar className="h-4 w-4 text-purple-600" />
+            <CardTitle className="text-sm font-medium text-black/50">Cette semaine</CardTitle>
+            <div className="w-8 h-8 bg-purple-500/10 rounded-lg flex items-center justify-center">
+              <Calendar className="h-4 w-4 text-purple-600" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-3xl font-bold text-black">
               {participationsOverTime.reduce((acc, d) => acc + d.participations, 0)}
             </div>
           </CardContent>
@@ -307,9 +319,9 @@ export default function DashboardPage() {
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
+        <Card className="border-black/10">
           <CardHeader>
-            <CardTitle className="text-lg">Participations (7 derniers jours)</CardTitle>
+            <CardTitle className="text-lg font-bold text-black">Participations (7 derniers jours)</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-64">
@@ -325,9 +337,9 @@ export default function DashboardPage() {
                   <Line 
                     type="monotone" 
                     dataKey="participations" 
-                    stroke="#6366f1" 
+                    stroke="#0a38fd" 
                     strokeWidth={2}
-                    dot={{ fill: '#6366f1', strokeWidth: 2 }}
+                    dot={{ fill: '#0a38fd', strokeWidth: 2 }}
                     name="Participations"
                   />
                 </LineChart>
@@ -336,9 +348,9 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-black/10">
           <CardHeader>
-            <CardTitle className="text-lg">Performance par test</CardTitle>
+            <CardTitle className="text-lg font-bold text-black">Performance par test</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-64">
@@ -352,7 +364,7 @@ export default function DashboardPage() {
                       contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
                       formatter={(value) => [`${value}%`, 'Score moyen']}
                     />
-                    <Bar dataKey="score" fill="#22c55e" radius={[4, 4, 0, 0]} name="Score moyen" />
+                    <Bar dataKey="score" fill="#0a38fd" radius={[4, 4, 0, 0]} name="Score moyen" />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
@@ -367,9 +379,9 @@ export default function DashboardPage() {
 
       {/* Score Distribution & Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card>
+        <Card className="border-black/10">
           <CardHeader>
-            <CardTitle className="text-lg">Distribution des scores</CardTitle>
+            <CardTitle className="text-lg font-bold text-black">Distribution des scores</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-48">
@@ -409,15 +421,15 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-2">
+        <Card className="lg:col-span-2 border-black/10">
           <CardHeader>
-            <CardTitle className="text-lg">Dernières participations</CardTitle>
+            <CardTitle className="text-lg font-bold text-black">Dernières participations</CardTitle>
           </CardHeader>
           <CardContent>
             {recentSubmissions.length > 0 ? (
               <div className="space-y-3">
                 {recentSubmissions.map((sub) => (
-                  <div key={sub.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div key={sub.id} className="flex items-center justify-between p-4 bg-black/5 rounded-xl hover:bg-black/10 transition-colors">
                     <div>
                       <p className="font-medium text-sm">{sub.candidateName}</p>
                       <p className="text-xs text-gray-500">{sub.testTitle}</p>
@@ -445,12 +457,12 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      <Card>
+      <Card className="border-black/10">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Mes tests</CardTitle>
-              <CardDescription>Liste de tous vos tests de positionnement</CardDescription>
+              <CardTitle className="text-xl font-bold text-black">Mes tests</CardTitle>
+              <CardDescription className="text-black/50">Liste de tous vos tests de positionnement</CardDescription>
             </div>
             <div className="flex items-center gap-3">
               <div className="relative">
@@ -480,13 +492,15 @@ export default function DashboardPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p className="text-gray-500 text-center py-8">Chargement...</p>
+            <p className="text-black/50 text-center py-8">Chargement...</p>
           ) : filteredTests.length === 0 ? (
             <div className="text-center py-12">
-              <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500 mb-4">Aucun test créé pour le moment</p>
+              <div className="w-16 h-16 bg-black/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <FileText className="h-8 w-8 text-black/30" />
+              </div>
+              <p className="text-black/50 mb-4">Aucun test créé pour le moment</p>
               <Link href="/admin/tests/new">
-                <Button>
+                <Button className="bg-[#0a38fd] hover:bg-[#0a38fd]/90 text-white">
                   <Plus className="h-4 w-4 mr-2" />
                   Créer mon premier test
                 </Button>

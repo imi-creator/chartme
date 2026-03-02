@@ -8,13 +8,17 @@ import { PLANS } from '@/lib/types';
 import { getStripe } from '@/lib/stripe-client';
 
 export default function BillingPage() {
-  const { user, organization, refreshOrganization } = useAuth();
-  const [loading, setLoading] = useState(false);
+  const { user, organization, loading: authLoading, refreshOrganization } = useAuth();
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
 
   const handleUpgrade = async () => {
-    if (!user || !organization) return;
+    if (!user || !organization) {
+      console.error('Missing user or organization:', { user: !!user, organization: !!organization });
+      alert('Erreur: données utilisateur non chargées. Veuillez rafraîchir la page.');
+      return;
+    }
 
-    setLoading(true);
+    setCheckoutLoading(true);
     try {
       const response = await fetch('/api/stripe/checkout', {
         method: 'POST',
@@ -27,17 +31,35 @@ export default function BillingPage() {
         }),
       });
 
-      const { url } = await response.json();
+      const data = await response.json();
 
-      if (url) {
-        window.location.href = url;
+      if (!response.ok) {
+        console.error('Checkout error:', data);
+        alert(data.error || 'Une erreur est survenue lors de la création de la session de paiement');
+        return;
+      }
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        console.error('No checkout URL returned:', data);
+        alert('Impossible de créer la session de paiement. Veuillez réessayer.');
       }
     } catch (error) {
       console.error('Error creating checkout session:', error);
+      alert('Une erreur est survenue. Veuillez réessayer.');
     } finally {
-      setLoading(false);
+      setCheckoutLoading(false);
     }
   };
+
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   const isPro = organization?.plan === 'pro';
 
@@ -141,14 +163,16 @@ export default function BillingPage() {
           ) : (
             <Button
               onClick={handleUpgrade}
-              disabled={loading}
+              disabled={checkoutLoading || !organization}
               className="w-full"
             >
-              {loading ? (
+              {checkoutLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Chargement...
+                  Redirection vers Stripe...
                 </>
+              ) : !organization ? (
+                'Chargement...'
               ) : (
                 'Passer au Pro'
               )}

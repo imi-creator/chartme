@@ -3,49 +3,61 @@
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import {
-  ClipboardCheck,
-  Sparkles,
-  BarChart3,
-  Users,
-  Zap,
-  Shield,
   ArrowRight,
   CheckCircle2,
   Brain,
   Target,
+  BarChart3,
+  Zap,
+  Quote,
+  Clock,
+  FileText,
+  TrendingUp,
 } from 'lucide-react';
 
 export default function Home() {
   const { user } = useAuth();
 
+  const testimonials = [
+    { quote: "ChartMe a divisé par 10 le temps de création de nos tests.", author: "Marie L.", role: "Responsable Formation" },
+    { quote: "L'IA génère des questions pertinentes et adaptées à notre secteur.", author: "Thomas R.", role: "Directeur Pédagogique" },
+    { quote: "Nos candidats apprécient la fluidité des évaluations.", author: "Sophie M.", role: "RH Manager" },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50">
+    <div className="min-h-screen bg-white">
       {/* Navigation */}
-      <nav className="sticky top-0 z-50 backdrop-blur-lg bg-white/80 border-b border-gray-100">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-sm border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-2">
-              <ClipboardCheck className="h-8 w-8 text-indigo-600" />
-              <span className="text-xl font-bold text-gray-900">
-                ChartMe <span className="text-sm font-normal text-gray-500">by imi</span>
+              <div className="w-8 h-8 bg-[#0a38fd] rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">C</span>
+              </div>
+              <span className="text-xl font-bold text-white">
+                ChartMe
               </span>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="hidden md:flex items-center gap-8">
+              <a href="#features" className="text-white/70 hover:text-white transition-colors text-sm">Fonctionnalités</a>
+              <a href="#process" className="text-white/70 hover:text-white transition-colors text-sm">Comment ça marche</a>
+              <a href="#testimonials" className="text-white/70 hover:text-white transition-colors text-sm">Témoignages</a>
+            </div>
+            <div className="flex items-center gap-3">
               {user ? (
-                <Button asChild>
+                <Button asChild className="bg-[#0a38fd] hover:bg-[#0a38fd]/90 text-white">
                   <Link href="/admin/dashboard">
-                    Accéder au Dashboard
+                    Dashboard
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
               ) : (
                 <>
-                  <Button variant="ghost" asChild>
-                    <Link href="/auth/login">Se connecter</Link>
+                  <Button variant="ghost" asChild className="text-white hover:text-white hover:bg-white/10">
+                    <Link href="/auth/login">Connexion</Link>
                   </Button>
-                  <Button asChild>
+                  <Button asChild className="bg-[#0a38fd] hover:bg-[#0a38fd]/90 text-white">
                     <Link href="/auth/login">Commencer</Link>
                   </Button>
                 </>
@@ -55,171 +67,275 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden pt-20 pb-32">
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse" />
-          <div className="absolute top-0 -right-4 w-72 h-72 bg-indigo-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse delay-1000" />
-          <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse delay-500" />
+      {/* Hero Section - Dark */}
+      <section className="relative min-h-screen bg-black pt-16 flex items-center overflow-hidden">
+        {/* Animated background */}
+        <div className="absolute inset-0">
+          <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-[#0a38fd]/20 rounded-full blur-[120px] animate-pulse" />
+          <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-[#0a38fd]/15 rounded-full blur-[100px] animate-pulse delay-1000" />
         </div>
+        
+        {/* Grid pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:64px_64px]" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-flex items-center gap-2 bg-indigo-50 text-indigo-700 px-4 py-2 rounded-full text-sm font-medium mb-8">
-              <Sparkles className="h-4 w-4" />
-              Propulsé par l&apos;Intelligence Artificielle
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+          <div className="max-w-5xl">
+            <div className="inline-flex items-center gap-2 bg-[#0a38fd]/10 border border-[#0a38fd]/30 text-[#0a38fd] px-4 py-2 rounded-full text-sm font-medium mb-8">
+              <Zap className="h-4 w-4" />
+              Propulsé par l&apos;IA • Résultats en temps réel
             </div>
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-gray-900 tracking-tight mb-6">
-              Tests de positionnement, évaluations et quizz{' '}
-              <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                intelligents
-              </span>
+            
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold text-white tracking-tight leading-[0.95] mb-8">
+              Créer un bon test
+              <br />
+              <span className="text-[#0a38fd]">ne prend plus</span>
+              <br />
+              des heures.
             </h1>
-            <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed">
-              Créez, diffusez et analysez des quiz personnalisés grâce à l&apos;IA.
-              Évaluez vos apprenants en quelques minutes, pas en quelques heures.
+            
+            <p className="text-xl sm:text-2xl text-white/60 mb-12 max-w-2xl leading-relaxed">
+              L&apos;IA génère vos tests de positionnement en quelques minutes.
+              Évaluez, analysez et positionnez vos apprenants sans effort.
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button size="lg" className="text-base px-8 h-12" asChild>
+            
+            <div className="flex flex-col sm:flex-row items-start gap-4 mb-16">
+              <Button size="lg" className="bg-[#0a38fd] hover:bg-[#0a38fd]/90 text-white text-lg px-8 h-14 rounded-xl" asChild>
                 <Link href="/auth/login">
                   Créer mon premier test
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" className="text-base px-8 h-12" asChild>
-                <Link href="#fonctionnalites">Découvrir les fonctionnalités</Link>
+              <Button size="lg" variant="ghost" className="border border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white text-lg px-8 h-14 rounded-xl" asChild>
+                <Link href="#process">
+                  Voir comment ça marche
+                </Link>
               </Button>
             </div>
-          </div>
 
-          {/* Stats */}
-          <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
+            {/* Trust badges */}
+            <div className="flex flex-wrap items-center gap-8 text-white/40 text-sm">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5 text-[#0a38fd]" />
+                <span>Sans engagement</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5 text-[#0a38fd]" />
+                <span>Configuration en 5 min</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5 text-[#0a38fd]" />
+                <span>Support réactif</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Scroll indicator */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
+          <span className="text-white/40 text-sm">Découvrir</span>
+          <div className="w-6 h-10 border-2 border-white/20 rounded-full flex justify-center pt-2">
+            <div className="w-1.5 h-3 bg-white/40 rounded-full animate-bounce" />
+          </div>
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="bg-black border-t border-white/10 py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 lg:gap-12">
             {[
-              { value: '10x', label: 'Plus rapide' },
-              { value: '100%', label: 'Personnalisable' },
-              { value: 'IA', label: 'Génération auto' },
-              { value: '24/7', label: 'Disponible' },
+              { value: '10x', label: 'Plus rapide que la création manuelle', icon: Zap },
+              { value: '500+', label: 'Tests créés par nos utilisateurs', icon: FileText },
+              { value: '98%', label: 'Taux de satisfaction client', icon: TrendingUp },
+              { value: '24/7', label: 'Plateforme disponible', icon: Clock },
             ].map((stat) => (
-              <div key={stat.label} className="text-center">
-                <div className="text-3xl font-bold text-indigo-600">{stat.value}</div>
-                <div className="text-sm text-gray-500 mt-1">{stat.label}</div>
+              <div key={stat.label} className="text-center group">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[#0a38fd]/10 mb-4 group-hover:bg-[#0a38fd]/20 transition-colors">
+                  <stat.icon className="h-6 w-6 text-[#0a38fd]" />
+                </div>
+                <div className="text-4xl lg:text-5xl font-bold text-white mb-2">{stat.value}</div>
+                <div className="text-sm text-white/50">{stat.label}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section id="fonctionnalites" className="py-24 bg-white">
+      {/* Problem/Solution Section - White */}
+      <section className="py-24 lg:py-32 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-              Tout ce dont vous avez besoin
+          <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+            <div>
+              <span className="text-[#0a38fd] font-semibold text-sm uppercase tracking-wider">Le problème</span>
+              <h2 className="text-4xl sm:text-5xl font-bold text-black mt-4 mb-6 leading-tight">
+                Vous passez des heures à créer des tests.
+              </h2>
+              <p className="text-xl text-black/60 leading-relaxed">
+                Rédiger des questions pertinentes, équilibrer les niveaux de difficulté, 
+                formater les réponses... Tout ça prend un temps précieux que vous pourriez 
+                consacrer à vos apprenants.
+              </p>
+            </div>
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-[#0a38fd]/5 to-transparent rounded-3xl" />
+              <div className="relative bg-gradient-to-br from-black to-black/90 rounded-3xl p-8 lg:p-12">
+                <span className="text-[#0a38fd] font-semibold text-sm uppercase tracking-wider">La solution</span>
+                <h3 className="text-3xl sm:text-4xl font-bold text-white mt-4 mb-6 leading-tight">
+                  ChartMe fait le travail pour vous.
+                </h3>
+                <ul className="space-y-4">
+                  {[
+                    'Génération automatique de questions par l\'IA',
+                    'Tests personnalisés selon vos critères',
+                    'Analyse instantanée des résultats',
+                    'Recommandations de positionnement automatiques',
+                  ].map((item) => (
+                    <li key={item} className="flex items-start gap-3">
+                      <CheckCircle2 className="h-6 w-6 text-[#0a38fd] flex-shrink-0 mt-0.5" />
+                      <span className="text-white/80">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section - Dark */}
+      <section id="features" className="py-24 lg:py-32 bg-black">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16 lg:mb-20">
+            <span className="text-[#0a38fd] font-semibold text-sm uppercase tracking-wider">Fonctionnalités</span>
+            <h2 className="text-4xl sm:text-5xl font-bold text-white mt-4 mb-6">
+              Ce que vous récupérez concrètement.
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Une plateforme complète pour créer, gérer et analyser vos tests de positionnement.
+            <p className="text-xl text-white/50 max-w-2xl mx-auto">
+              Une plateforme complète pour créer, gérer et analyser vos évaluations.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {[
               {
                 icon: Brain,
                 title: 'Génération IA',
-                description:
-                  'Créez des questions pertinentes automatiquement grâce à notre moteur d\'IA avancé.',
+                description: 'Notre moteur d\'IA crée des questions pertinentes adaptées à votre secteur et niveau cible.',
               },
               {
                 icon: Target,
                 title: 'Tests personnalisés',
-                description:
-                  'Adaptez chaque test à vos besoins spécifiques avec des critères de positionnement sur mesure.',
+                description: 'Définissez vos critères de positionnement et laissez l\'IA adapter le contenu.',
               },
               {
                 icon: BarChart3,
                 title: 'Analyses détaillées',
-                description:
-                  'Obtenez des insights précis sur les performances et le positionnement de chaque apprenant.',
-              },
-              {
-                icon: Users,
-                title: 'Gestion des candidats',
-                description:
-                  'Suivez facilement vos candidats et leur progression à travers les différents tests.',
+                description: 'Tableaux de bord complets avec insights sur les performances individuelles et collectives.',
               },
               {
                 icon: Zap,
                 title: 'Résultats instantanés',
-                description:
-                  'Recevez les résultats et recommandations de positionnement en temps réel.',
+                description: 'Les apprenants reçoivent leur positionnement dès la fin du test.',
               },
               {
-                icon: Shield,
-                title: 'Sécurisé & Conforme',
-                description:
-                  'Vos données sont protégées et hébergées en conformité avec les normes RGPD.',
+                icon: FileText,
+                title: 'Rapports exportables',
+                description: 'Générez des rapports PDF professionnels pour chaque candidat ou session.',
+              },
+              {
+                icon: Clock,
+                title: 'Historique complet',
+                description: 'Suivez la progression de vos apprenants dans le temps avec des données précises.',
               },
             ].map((feature) => (
-              <Card
+              <div
                 key={feature.title}
-                className="group hover:shadow-lg transition-all duration-300 border-gray-100 hover:border-indigo-100"
+                className="group relative bg-white/5 border border-white/10 rounded-2xl p-8 hover:bg-white/10 hover:border-[#0a38fd]/30 transition-all duration-300"
               >
-                <CardContent className="p-6">
-                  <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center mb-4 group-hover:bg-indigo-100 transition-colors">
-                    <feature.icon className="h-6 w-6 text-indigo-600" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{feature.title}</h3>
-                  <p className="text-gray-600">{feature.description}</p>
-                </CardContent>
-              </Card>
+                <div className="w-14 h-14 bg-[#0a38fd]/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-[#0a38fd]/20 transition-colors">
+                  <feature.icon className="h-7 w-7 text-[#0a38fd]" />
+                </div>
+                <h3 className="text-xl font-semibold text-white mb-3">{feature.title}</h3>
+                <p className="text-white/50 leading-relaxed">{feature.description}</p>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* How it works */}
-      <section className="py-24 bg-gradient-to-b from-gray-50 to-white">
+      {/* Process Section - White */}
+      <section id="process" className="py-24 lg:py-32 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-              Comment ça marche ?
+          <div className="text-center mb-16 lg:mb-20">
+            <span className="text-[#0a38fd] font-semibold text-sm uppercase tracking-wider">Processus</span>
+            <h2 className="text-4xl sm:text-5xl font-bold text-black mt-4 mb-6">
+              De l&apos;idée au test. En 3 étapes.
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Trois étapes simples pour créer et diffuser vos tests de positionnement.
+            <p className="text-xl text-black/50 max-w-2xl mx-auto">
+              Créez et diffusez vos tests de positionnement en quelques minutes.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
+          <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
             {[
               {
                 step: '01',
                 title: 'Définissez vos critères',
-                description:
-                  'Configurez les compétences à évaluer, les niveaux de positionnement et les objectifs du test.',
+                description: 'Configurez les compétences, niveaux et objectifs. L\'IA s\'adapte à vos besoins spécifiques.',
               },
               {
                 step: '02',
                 title: 'Générez avec l\'IA',
-                description:
-                  'Laissez notre IA créer des questions pertinentes ou importez vos propres questions.',
+                description: 'En quelques clics, obtenez un test complet avec des questions pertinentes et calibrées.',
               },
               {
                 step: '03',
-                title: 'Analysez les résultats',
-                description:
-                  'Recevez des rapports détaillés avec recommandations de positionnement pour chaque candidat.',
+                title: 'Analysez & Positionnez',
+                description: 'Recevez des rapports détaillés avec recommandations automatiques pour chaque candidat.',
               },
-            ].map((item, index) => (
+            ].map((item) => (
               <div key={item.step} className="relative">
-                {index < 2 && (
-                  <div className="hidden md:block absolute top-12 left-full w-full h-0.5 bg-gradient-to-r from-indigo-200 to-transparent -translate-x-1/2" />
-                )}
-                <div className="text-center">
-                  <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-2xl font-bold mb-6 shadow-lg">
+                <div className="relative bg-black rounded-2xl p-8 lg:p-10 h-full border border-white/10">
+                  <div className="text-6xl lg:text-7xl font-bold text-[#0a38fd] mb-4">
                     {item.step}
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-3">{item.title}</h3>
-                  <p className="text-gray-600">{item.description}</p>
+                  <h3 className="text-2xl font-bold text-white mb-4">{item.title}</h3>
+                  <p className="text-white/60 leading-relaxed">{item.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section - Dark */}
+      <section id="testimonials" className="py-24 lg:py-32 bg-black">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16 lg:mb-20">
+            <span className="text-[#0a38fd] font-semibold text-sm uppercase tracking-wider">Témoignages</span>
+            <h2 className="text-4xl sm:text-5xl font-bold text-white mt-4 mb-6">
+              Ce que nos clients disent.
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {testimonials.map((testimonial, index) => (
+              <div
+                key={index}
+                className="relative bg-white/5 border border-white/10 rounded-2xl p-8 hover:border-[#0a38fd]/30 transition-colors"
+              >
+                <Quote className="h-10 w-10 text-[#0a38fd] mb-6" />
+                <p className="text-white/80 text-lg leading-relaxed mb-8">
+                  &quot;{testimonial.quote}&quot;
+                </p>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-[#0a38fd]/20 rounded-full flex items-center justify-center">
+                    <span className="text-[#0a38fd] font-bold">{testimonial.author[0]}</span>
+                  </div>
+                  <div>
+                    <div className="text-white font-semibold">{testimonial.author}</div>
+                    <div className="text-white/40 text-sm">{testimonial.role}</div>
+                  </div>
                 </div>
               </div>
             ))}
@@ -228,59 +344,58 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24">
+      <section className="py-24 lg:py-32 bg-[#0a38fd]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-600 to-purple-600 px-8 py-16 sm:px-16 sm:py-20">
-            <div className="absolute inset-0 -z-10">
-              <div className="absolute -top-24 -right-24 w-96 h-96 bg-white/10 rounded-full blur-3xl" />
-              <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-white/10 rounded-full blur-3xl" />
+          <div className="max-w-3xl mx-auto text-center">
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
+              Prêt à gagner du temps ?
+            </h2>
+            <p className="text-xl text-white/80 mb-10">
+              Rejoignez les formateurs qui ont déjà transformé leur façon de créer des évaluations.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10">
+              <Button
+                size="lg"
+                className="bg-white text-[#0a38fd] hover:bg-white/90 text-lg px-10 h-14 rounded-xl font-semibold"
+                asChild
+              >
+                <Link href="/auth/login">
+                  Commencer gratuitement
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
+              </Button>
             </div>
-
-            <div className="relative z-10 max-w-2xl mx-auto text-center">
-              <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
-                Prêt à transformer vos évaluations ?
-              </h2>
-              <p className="text-lg text-indigo-100 mb-8">
-                Rejoignez les formateurs qui utilisent ChartMe pour créer des tests de positionnement
-                efficaces et personnalisés.
-              </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Button
-                  size="lg"
-                  className="bg-white text-indigo-600 hover:bg-indigo-50 text-base px-8 h-12"
-                  asChild
-                >
-                  <Link href="/auth/login">
-                    Commencer gratuitement
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Link>
-                </Button>
-              </div>
-              <div className="mt-8 flex items-center justify-center gap-6 text-indigo-100 text-sm">
-                {['Configuration rapide', 'Pas de carte requise', 'Support inclus'].map((item) => (
-                  <div key={item} className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4" />
-                    <span>{item}</span>
-                  </div>
-                ))}
-              </div>
+            <div className="flex flex-wrap items-center justify-center gap-6 text-white/70 text-sm">
+              {['Configuration rapide', 'Pas de carte requise', 'Support inclus'].map((item) => (
+                <div key={item} className="flex items-center gap-2">
+                  <CheckCircle2 className="h-5 w-5" />
+                  <span>{item}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-gray-400 py-12">
+      <footer className="bg-black border-t border-white/10 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-2">
-              <ClipboardCheck className="h-6 w-6 text-indigo-400" />
+              <div className="w-8 h-8 bg-[#0a38fd] rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">C</span>
+              </div>
               <span className="text-lg font-semibold text-white">
-                ChartMe <span className="text-sm font-normal text-gray-500">by imi</span>
+                ChartMe <span className="text-sm font-normal text-white/40">by imi</span>
               </span>
             </div>
-            <p className="text-sm">
-              © {new Date().getFullYear()} ChartMe by imi executive solutions. Tous droits réservés.
+            <div className="flex items-center gap-8">
+              <a href="#" className="text-white/40 hover:text-white transition-colors text-sm">Mentions légales</a>
+              <a href="#" className="text-white/40 hover:text-white transition-colors text-sm">Confidentialité</a>
+              <a href="#" className="text-white/40 hover:text-white transition-colors text-sm">Contact</a>
+            </div>
+            <p className="text-sm text-white/40">
+              © {new Date().getFullYear()} ChartMe by imi executive solutions
             </p>
           </div>
         </div>
