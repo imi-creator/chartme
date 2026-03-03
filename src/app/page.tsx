@@ -28,21 +28,21 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-sm border-b border-white/10">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-black/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 bg-[#0a38fd] rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">C</span>
               </div>
-              <span className="text-xl font-bold text-white">
+              <span className="text-xl font-bold text-black">
                 ChartMe
               </span>
             </div>
             <div className="hidden md:flex items-center gap-8">
-              <a href="#features" className="text-white/70 hover:text-white transition-colors text-sm">Fonctionnalités</a>
-              <a href="#process" className="text-white/70 hover:text-white transition-colors text-sm">Comment ça marche</a>
-              <a href="#testimonials" className="text-white/70 hover:text-white transition-colors text-sm">Témoignages</a>
+              <a href="#features" className="text-black/60 hover:text-black transition-colors text-sm">Fonctionnalités</a>
+              <a href="#process" className="text-black/60 hover:text-black transition-colors text-sm">Comment ça marche</a>
+              <a href="#testimonials" className="text-black/60 hover:text-black transition-colors text-sm">Témoignages</a>
             </div>
             <div className="flex items-center gap-3">
               {user ? (
@@ -54,7 +54,7 @@ export default function Home() {
                 </Button>
               ) : (
                 <>
-                  <Button variant="ghost" asChild className="text-white hover:text-white hover:bg-white/10">
+                  <Button variant="ghost" asChild className="text-black/70 hover:text-black hover:bg-black/5">
                     <Link href="/auth/login">Connexion</Link>
                   </Button>
                   <Button asChild className="bg-[#0a38fd] hover:bg-[#0a38fd]/90 text-white">
@@ -67,16 +67,16 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* Hero Section - Dark */}
-      <section className="relative min-h-screen bg-black pt-16 flex items-center overflow-hidden">
+      {/* Hero Section - Light */}
+      <section className="relative min-h-screen bg-white pt-16 flex items-center overflow-hidden">
         {/* Animated background */}
         <div className="absolute inset-0">
-          <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-[#0a38fd]/20 rounded-full blur-[120px] animate-pulse" />
-          <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-[#0a38fd]/15 rounded-full blur-[100px] animate-pulse delay-1000" />
+          <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-[#0a38fd]/10 rounded-full blur-[120px]" />
+          <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-[#0a38fd]/5 rounded-full blur-[100px]" />
         </div>
         
         {/* Grid pattern */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:64px_64px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:64px_64px]" />
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="max-w-5xl">
@@ -85,7 +85,7 @@ export default function Home() {
               Propulsé par l&apos;IA • Résultats en temps réel
             </div>
             
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold text-white tracking-tight leading-[0.95] mb-8">
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold text-black tracking-tight leading-[0.95] mb-8">
               Créer un bon test
               <br />
               <span className="text-[#0a38fd]">ne prend plus</span>
@@ -93,7 +93,7 @@ export default function Home() {
               des heures.
             </h1>
             
-            <p className="text-xl sm:text-2xl text-white/60 mb-12 max-w-2xl leading-relaxed">
+            <p className="text-xl sm:text-2xl text-black/50 mb-12 max-w-2xl leading-relaxed">
               L&apos;IA génère vos tests de positionnement en quelques minutes.
               Évaluez, analysez et positionnez vos apprenants sans effort.
             </p>
@@ -105,7 +105,7 @@ export default function Home() {
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
-              <Button size="lg" variant="ghost" className="border border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white text-lg px-8 h-14 rounded-xl" asChild>
+              <Button size="lg" variant="ghost" className="border border-black/20 bg-transparent text-black hover:bg-black/5 text-lg px-8 h-14 rounded-xl" asChild>
                 <Link href="#process">
                   Voir comment ça marche
                 </Link>
@@ -113,7 +113,7 @@ export default function Home() {
             </div>
 
             {/* Trust badges */}
-            <div className="flex flex-wrap items-center gap-8 text-white/40 text-sm">
+            <div className="flex flex-wrap items-center gap-8 text-black/40 text-sm">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5 text-[#0a38fd]" />
                 <span>Sans engagement</span>
@@ -132,16 +132,17 @@ export default function Home() {
 
         {/* Scroll indicator */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
-          <span className="text-white/40 text-sm">Découvrir</span>
-          <div className="w-6 h-10 border-2 border-white/20 rounded-full flex justify-center pt-2">
-            <div className="w-1.5 h-3 bg-white/40 rounded-full animate-bounce" />
+          <span className="text-black/40 text-sm">Découvrir</span>
+          <div className="w-6 h-10 border-2 border-black/20 rounded-full flex justify-center pt-2">
+            <div className="w-1.5 h-3 bg-black/30 rounded-full animate-bounce" />
           </div>
         </div>
       </section>
 
       {/* Stats Section */}
-      <section className="bg-black border-t border-white/10 py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative bg-black py-20 overflow-hidden">
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:64px_64px]" />
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 lg:gap-12">
             {[
               { value: '10x', label: 'Plus rapide que la création manuelle', icon: Zap },
@@ -162,8 +163,9 @@ export default function Home() {
       </section>
 
       {/* Problem/Solution Section - White */}
-      <section className="py-24 lg:py-32 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative py-24 lg:py-32 bg-white overflow-hidden">
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:64px_64px]" />
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
             <div>
               <span className="text-[#0a38fd] font-semibold text-sm uppercase tracking-wider">Le problème</span>
@@ -203,8 +205,9 @@ export default function Home() {
       </section>
 
       {/* Features Section - Dark */}
-      <section id="features" className="py-24 lg:py-32 bg-black">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section id="features" className="relative py-24 lg:py-32 bg-black overflow-hidden">
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:64px_64px]" />
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16 lg:mb-20">
             <span className="text-[#0a38fd] font-semibold text-sm uppercase tracking-wider">Fonctionnalités</span>
             <h2 className="text-4xl sm:text-5xl font-bold text-white mt-4 mb-6">
@@ -264,8 +267,9 @@ export default function Home() {
       </section>
 
       {/* Process Section - White */}
-      <section id="process" className="py-24 lg:py-32 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section id="process" className="relative py-24 lg:py-32 bg-white overflow-hidden">
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:64px_64px]" />
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16 lg:mb-20">
             <span className="text-[#0a38fd] font-semibold text-sm uppercase tracking-wider">Processus</span>
             <h2 className="text-4xl sm:text-5xl font-bold text-black mt-4 mb-6">
@@ -309,8 +313,9 @@ export default function Home() {
       </section>
 
       {/* Testimonials Section - Dark */}
-      <section id="testimonials" className="py-24 lg:py-32 bg-black">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section id="testimonials" className="relative py-24 lg:py-32 bg-black overflow-hidden">
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:64px_64px]" />
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16 lg:mb-20">
             <span className="text-[#0a38fd] font-semibold text-sm uppercase tracking-wider">Témoignages</span>
             <h2 className="text-4xl sm:text-5xl font-bold text-white mt-4 mb-6">
@@ -344,8 +349,9 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 lg:py-32 bg-[#0a38fd]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative py-24 lg:py-32 bg-[#0a38fd] overflow-hidden">
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:64px_64px]" />
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
               Prêt à gagner du temps ?
