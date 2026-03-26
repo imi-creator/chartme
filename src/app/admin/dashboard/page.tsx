@@ -28,6 +28,7 @@ export default function DashboardPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [testToDelete, setTestToDelete] = useState<Test | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [participantSearch, setParticipantSearch] = useState('');
 
   useEffect(() => {
     if (!user || !organization) return;
@@ -222,6 +223,23 @@ export default function DashboardPage() {
   const activeTests = tests.filter(t => t.isActive).length;
 
   const recentSubmissions = submissions.slice(0, 5);
+
+  const participants = useMemo(() => {
+    const grouped: { [email: string]: { name: string; email: string; submissions: Submission[] } } = {};
+    submissions.forEach(sub => {
+      if (!grouped[sub.candidateEmail]) {
+        grouped[sub.candidateEmail] = { name: sub.candidateName, email: sub.candidateEmail, submissions: [] };
+      }
+      grouped[sub.candidateEmail].submissions.push(sub);
+    });
+    return Object.values(grouped);
+  }, [submissions]);
+
+  const filteredParticipants = participants.filter(p => {
+    if (participantSearch === '') return true;
+    const q = participantSearch.toLowerCase();
+    return p.name.toLowerCase().includes(q) || p.email.toLowerCase().includes(q);
+  });
 
   return (
     <div className="space-y-8">
@@ -429,23 +447,25 @@ export default function DashboardPage() {
             {recentSubmissions.length > 0 ? (
               <div className="space-y-3">
                 {recentSubmissions.map((sub) => (
-                  <div key={sub.id} className="flex items-center justify-between p-4 bg-black/5 rounded-xl hover:bg-black/10 transition-colors">
-                    <div>
-                      <p className="font-medium text-sm">{sub.candidateName}</p>
-                      <p className="text-xs text-gray-500">{sub.testTitle}</p>
+                  <Link key={sub.id} href={`/admin/tests/${sub.testId}/results`}>
+                    <div className="flex items-center justify-between p-4 bg-black/5 rounded-xl hover:bg-black/10 transition-colors cursor-pointer">
+                      <div>
+                        <p className="font-medium text-sm">{sub.candidateName}</p>
+                        <p className="text-xs text-gray-500">{sub.testTitle}</p>
+                      </div>
+                      <div className="text-right">
+                        <Badge variant={
+                          (sub.score / sub.totalQuestions) * 100 >= 75 ? 'default' :
+                          (sub.score / sub.totalQuestions) * 100 >= 50 ? 'secondary' : 'destructive'
+                        }>
+                          {sub.score}/{sub.totalQuestions} ({Math.round((sub.score / sub.totalQuestions) * 100)}%)
+                        </Badge>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {sub.completedAt.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <Badge variant={
-                        (sub.score / sub.totalQuestions) * 100 >= 75 ? 'default' :
-                        (sub.score / sub.totalQuestions) * 100 >= 50 ? 'secondary' : 'destructive'
-                      }>
-                        {sub.score}/{sub.totalQuestions} ({Math.round((sub.score / sub.totalQuestions) * 100)}%)
-                      </Badge>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {sub.completedAt.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                      </p>
-                    </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             ) : (
@@ -601,6 +621,82 @@ export default function DashboardPage() {
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Section Participants */}
+      <Card className="border-black/10">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-xl font-bold text-black">Participants</CardTitle>
+              <CardDescription className="text-black/50">Recherchez un participant et accédez à ses résultats</CardDescription>
+            </div>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Rechercher par nom ou email..."
+                value={participantSearch}
+                onChange={(e) => setParticipantSearch(e.target.value)}
+                className="pl-9 w-72"
+              />
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {filteredParticipants.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-black/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Users className="h-8 w-8 text-black/30" />
+              </div>
+              <p className="text-black/50">
+                {participantSearch ? 'Aucun participant trouvé' : 'Aucun participant pour le moment'}
+              </p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nom</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Score moyen</TableHead>
+                  <TableHead>Tests passés</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredParticipants.map((p) => {
+                  const avgScore = Math.round(
+                    p.submissions.reduce((acc, s) => acc + (s.score / s.totalQuestions) * 100, 0) / p.submissions.length
+                  );
+                  return (
+                    <TableRow key={p.email}>
+                      <TableCell className="font-medium">{p.name}</TableCell>
+                      <TableCell className="text-gray-500">{p.email}</TableCell>
+                      <TableCell>
+                        <Badge variant={avgScore >= 75 ? 'default' : avgScore >= 50 ? 'secondary' : 'destructive'}>
+                          {avgScore}%
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {p.submissions.map((sub) => (
+                            <Link key={sub.id} href={`/admin/tests/${sub.testId}/results`}>
+                              <Badge
+                                variant="outline"
+                                className="cursor-pointer hover:bg-[#0a38fd]/10 hover:border-[#0a38fd] transition-colors"
+                              >
+                                {sub.testTitle} — {Math.round((sub.score / sub.totalQuestions) * 100)}%
+                              </Badge>
+                            </Link>
+                          ))}
                         </div>
                       </TableCell>
                     </TableRow>
