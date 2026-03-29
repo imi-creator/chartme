@@ -58,11 +58,13 @@ service cloud.firestore {
 
     // Training Paths (Parcours de formation)
     match /trainingPaths/{pathId} {
-      // Lecture autorisée si: membre de l'org OU si le document a un shareToken (rapport partagé)
-      allow read: if (isAuthenticated() && belongsToOrg(resource.data.organizationId)) 
-                  || resource.data.shareToken != null;
+      // Lecture publique: nécessaire pour que les candidats non-authentifiés puissent
+      // trouver leur parcours via checkTrainingPath() lors du passage du test
+      allow read: if true;
       allow create: if isAuthenticated();
-      allow update: if isAuthenticated() && belongsToOrg(resource.data.organizationId);
+      // Update autorisé si: membre de l'org OU candidat qui met à jour uniquement sessions/status
+      allow update: if (isAuthenticated() && belongsToOrg(resource.data.organizationId))
+                    || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['sessions', 'status']);
       allow delete: if isAuthenticated() && belongsToOrg(resource.data.organizationId);
     }
   }
