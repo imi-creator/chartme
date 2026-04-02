@@ -121,16 +121,16 @@ export default function NewTestPage() {
         body: JSON.stringify({ topic, numberOfQuestions, difficulty }),
       });
 
-      if (!response.ok) {
-        throw new Error('Erreur de génération');
-      }
-
       const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erreur de génération');
+      }
       setQuestions(data.questions);
       toast.success(`${data.questions.length} questions générées avec succès`);
     } catch (error) {
       console.error(error);
-      toast.error('Erreur lors de la génération des questions');
+      toast.error(error instanceof Error ? error.message : 'Erreur lors de la génération des questions');
     } finally {
       setGenerating(false);
     }

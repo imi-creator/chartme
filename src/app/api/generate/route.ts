@@ -10,6 +10,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Le sujet est requis' }, { status: 400 });
     }
 
+    if (!OPENROUTER_API_KEY) {
+      console.error('OPENROUTER_API_KEY is not set');
+      return NextResponse.json({ error: 'Clé API OpenRouter non configurée' }, { status: 500 });
+    }
+
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -18,7 +23,7 @@ export async function POST(request: NextRequest) {
         'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
       },
       body: JSON.stringify({
-        model: 'anthropic/claude-3.5-sonnet',
+        model: 'anthropic/claude-sonnet-4.5',
         messages: [
           {
             role: 'system',
@@ -58,9 +63,14 @@ Réponds UNIQUEMENT avec un JSON valide, sans texte avant ou après. Le format d
     });
 
     if (!response.ok) {
-      const error = await response.text();
-      console.error('OpenRouter API error:', error);
-      return NextResponse.json({ error: 'Erreur de génération IA' }, { status: 500 });
+      const errorText = await response.text();
+      console.error('OpenRouter API error:', errorText);
+      let detail = 'Erreur de génération IA';
+      try {
+        const parsed = JSON.parse(errorText);
+        detail = parsed?.error?.message || detail;
+      } catch {}
+      return NextResponse.json({ error: detail }, { status: response.status });
     }
 
     const data = await response.json();
